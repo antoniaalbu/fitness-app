@@ -4,6 +4,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Auth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, FacebookAuthProvider } from '@angular/fire/auth';
 import { inject } from '@angular/core';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-auth',
@@ -14,6 +15,7 @@ import { inject } from '@angular/core';
 })
 export class LoginComponent {
   private auth = inject(Auth);
+  private router = inject(Router);
 
   // Signals
   isLogin = signal(true);
@@ -29,7 +31,7 @@ export class LoginComponent {
     this.errorMessage.set('');
   }
 
-  async handleSubmit(event: Event) {
+   async handleSubmit(event: Event) {
     event.preventDefault();
     this.loading.set(true);
     this.errorMessage.set('');
@@ -43,6 +45,8 @@ export class LoginComponent {
           this.password()
         );
         console.log('Login successful');
+        // Redirect to dashboard
+        this.router.navigate(['/dashboard']);
       } else {
         // Signup
         if (this.password() !== this.confirmPassword()) {
@@ -56,6 +60,8 @@ export class LoginComponent {
           this.password()
         );
         console.log('Signup successful');
+        // Redirect to dashboard
+        this.router.navigate(['/dashboard']);
       }
     } catch (error: any) {
       this.errorMessage.set(error.message || 'Authentication failed');
@@ -71,6 +77,8 @@ export class LoginComponent {
       const provider = new GoogleAuthProvider();
       await signInWithPopup(this.auth, provider);
       console.log('Google authentication successful');
+      // Redirect to dashboard
+      this.router.navigate(['/dashboard']);
     } catch (error: any) {
       this.errorMessage.set(error.message || 'Google authentication failed');
     } finally {

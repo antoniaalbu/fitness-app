@@ -1,0 +1,164 @@
+<div class="dashboard">
+  <!-- Navigation -->
+  <nav class="dashboard-nav">
+    <div class="nav-content">
+      <div class="logo">
+        <span class="logo-icon">⚡</span>
+        <span class="logo-text">FITTRACK</span>
+      </div>
+      <div class="nav-right">
+        <div class="user-info">
+          <span class="user-name">{{ userName() }}</span>
+          <span class="user-streak">🔥 {{ userStreak() }} day streak</span>
+        </div>
+        <button class="logout-button" (click)="logout()">
+          LOGOUT
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Main Content -->
+  <div class="dashboard-content">
+    <!-- Hero Stats -->
+    <section class="hero-stats">
+      <div class="stat-card primary">
+        <div class="stat-icon">💪</div>
+        <div class="stat-info">
+          <div class="stat-value">{{ completedSets() }}/{{ totalSets() }}</div>
+          <div class="stat-label">SETS COMPLETED</div>
+        </div>
+        <div class="stat-progress">
+          <div class="progress-bar" [style.width.%]="workoutProgress()"></div>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon">🍽️</div>
+        <div class="stat-info">
+          <div class="stat-value">{{ totalCalories() }}</div>
+          <div class="stat-label">CALORIES TODAY</div>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon">🥩</div>
+        <div class="stat-info">
+          <div class="stat-value">{{ totalProtein() }}g</div>
+          <div class="stat-label">PROTEIN TODAY</div>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon">🎯</div>
+        <div class="stat-info">
+          <div class="stat-value">{{ goals().length }}</div>
+          <div class="stat-label">ACTIVE GOALS</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Main Grid -->
+    <div class="dashboard-grid">
+      <!-- Today's Workout -->
+      <section class="dashboard-card workout-card">
+        <div class="card-header">
+          <h2 class="card-title">TODAY'S WORKOUT</h2>
+          <span class="card-badge">PUSH DAY</span>
+        </div>
+        <div class="workout-list">
+          @for (workout of todayWorkout(); track workout.exercise) {
+            <div class="workout-item" [class.completed]="workout.completed">
+              <div class="workout-checkbox" (click)="toggleWorkoutComplete($index)">
+                @if (workout.completed) {
+                  <span class="check-icon">✓</span>
+                }
+              </div>
+              <div class="workout-info">
+                <div class="workout-name">{{ workout.exercise }}</div>
+                <div class="workout-details">
+                  {{ workout.sets }} sets × {{ workout.reps }} reps
+                  @if (workout.weight > 0) {
+                    <span> • {{ workout.weight }} lbs</span>
+                  }
+                </div>
+              </div>
+            </div>
+          }
+        </div>
+      </section>
+
+      <!-- Goals -->
+      <section class="dashboard-card goals-card">
+        <div class="card-header">
+          <h2 class="card-title">YOUR GOALS</h2>
+          <button class="card-action">+ ADD</button>
+        </div>
+        <div class="goals-list">
+          @for (goal of goals(); track goal.title) {
+            <div class="goal-item">
+              <div class="goal-header">
+                <span class="goal-title">{{ goal.title }}</span>
+                <span class="goal-deadline">{{ goal.deadline }}</span>
+              </div>
+              <div class="goal-progress-bar">
+                <div class="goal-fill" [style.width.%]="getGoalProgress(goal)"></div>
+              </div>
+              <div class="goal-stats">
+                <span class="goal-current">{{ goal.current }} {{ goal.unit }}</span>
+                <span class="goal-target">{{ goal.target }} {{ goal.unit }}</span>
+              </div>
+            </div>
+          }
+        </div>
+      </section>
+
+      <!-- Progress Chart -->
+      <section class="dashboard-card progress-card">
+        <div class="card-header">
+          <h2 class="card-title">WEEKLY PROGRESS</h2>
+          <span class="card-badge">WEIGHT TRACKING</span>
+        </div>
+        <div class="progress-chart">
+          @for (day of progressData(); track day.date) {
+            <div class="chart-bar">
+              <div class="bar-container">
+                <div 
+                  class="bar-fill" 
+                  [style.height.%]="(day.workouts / 2) * 100"
+                  [class.active]="day.workouts > 0">
+                </div>
+              </div>
+              <div class="bar-label">{{ day.date }}</div>
+              <div class="bar-value">{{ day.weight }}lb</div>
+            </div>
+          }
+        </div>
+      </section>
+
+      <!-- Diet Plan -->
+      <section class="dashboard-card diet-card">
+        <div class="card-header">
+          <h2 class="card-title">TODAY'S MEALS</h2>
+          <button class="card-action">EDIT</button>
+        </div>
+        <div class="meals-list">
+          @for (meal of mealPlan(); track meal.time) {
+            <div class="meal-item">
+              <div class="meal-time">{{ meal.time }}</div>
+              <div class="meal-info">
+                <div class="meal-name">{{ meal.name }}</div>
+                <div class="meal-macros">
+                  <span class="macro">{{ meal.calories }} cal</span>
+                  <span class="macro">P: {{ meal.protein }}g</span>
+                  <span class="macro">C: {{ meal.carbs }}g</span>
+                  <span class="macro">F: {{ meal.fats }}g</span>
+                </div>
+              </div>
+            </div>
+          }
+        </div>
+      </section>
+    </div>
+  </div>
+</div>
