@@ -1,0 +1,146 @@
+<div class="dashboard">
+  <!-- Navigation -->
+  <nav class="dashboard-nav">
+    <div class="nav-content">
+      <div class="logo">
+        <span class="logo-icon">⚡</span>
+        <span class="logo-text">FITTRACK</span>
+      </div>
+      <div class="nav-right">
+        <div class="user-info">
+          <span class="user-name">{{ userName() }}</span>
+        </div>
+        <button class="logout-button" (click)="logout()">
+          LOGOUT
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Main Content -->
+  <div class="dashboard-content">
+    <!-- Workout Selector -->
+    <div class="workout-tabs">
+      @for (workout of workouts(); track workout.id) {
+        <button 
+          class="workout-tab"
+          [class.active]="$index === activeWorkoutIndex()"
+          (click)="switchWorkout($index)">
+          <div class="tab-name">{{ workout.name }}</div>
+          <div class="tab-date">{{ workout.date }}</div>
+        </button>
+      }
+    </div>
+
+    <!-- Current Workout -->
+    <div class="workout-container">
+      <div class="workout-header">
+        <h1 class="workout-title">{{ activeWorkout().name }}</h1>
+        <div class="workout-meta">
+          <span class="workout-date">{{ activeWorkout().date }}</span>
+          <span class="exercise-count">{{ activeWorkout().exercises.length }} exercises</span>
+        </div>
+      </div>
+
+      <!-- Exercise List -->
+      <div class="exercises-list">
+        @for (exercise of activeWorkout().exercises; track exercise.id) {
+          <div class="exercise-card">
+            <div class="exercise-header">
+              <h3 class="exercise-name">{{ exercise.name }}</h3>
+              <div class="exercise-actions">
+                <button class="action-btn add-set" (click)="addSet(exercise.id)">
+                  + SET
+                </button>
+                <button class="action-btn delete" (click)="deleteExercise(exercise.id)">
+                  🗑️
+                </button>
+              </div>
+            </div>
+
+            @if (exercise.notes) {
+              <div class="exercise-notes">{{ exercise.notes }}</div>
+            }
+
+            <!-- Sets -->
+            <div class="sets-list">
+              @for (set of exercise.sets; track $index) {
+                <div class="set-row">
+                  <div class="set-number">SET {{ $index + 1 }}</div>
+                  
+                  <!-- Reps Control -->
+                  <div class="set-control">
+                    <button class="control-btn minus" (click)="adjustReps(exercise.id, $index, -1)">
+                      −
+                    </button>
+                    <div class="control-input-group">
+                      <input 
+                        type="number" 
+                        class="control-input"
+                        [value]="set.reps"
+                        (input)="updateReps(exercise.id, $index, $any($event.target).value)"
+                        min="0"
+                      />
+                      <span class="control-label">REPS</span>
+                    </div>
+                    <button class="control-btn plus" (click)="adjustReps(exercise.id, $index, 1)">
+                      +
+                    </button>
+                  </div>
+
+                  <!-- Weight Control -->
+                  <div class="set-control">
+                    <button class="control-btn minus" (click)="adjustWeight(exercise.id, $index, -2.5)">
+                      −
+                    </button>
+                    <div class="control-input-group">
+                      <input 
+                        type="number" 
+                        class="control-input"
+                        [value]="set.weight"
+                        (input)="updateWeight(exercise.id, $index, $any($event.target).value)"
+                        step="0.5"
+                        min="0"
+                      />
+                      <span class="control-label">{{ exercise.unit }}</span>
+                    </div>
+                    <button class="control-btn plus" (click)="adjustWeight(exercise.id, $index, 2.5)">
+                      +
+                    </button>
+                  </div>
+
+                  <!-- Delete Set Button -->
+                  @if (exercise.sets.length > 1) {
+                    <button class="delete-set-btn" (click)="removeSet(exercise.id, $index)">
+                      ✕
+                    </button>
+                  }
+                </div>
+              }
+            </div>
+
+            <!-- Set Summary -->
+            <div class="set-summary">
+              {{ exercise.sets.length }} sets total
+            </div>
+          </div>
+        }
+      </div>
+
+      <!-- Add Exercise -->
+      <div class="add-exercise-card">
+        <input 
+          type="text" 
+          class="add-exercise-input"
+          placeholder="Exercise name..."
+          [value]="newExerciseName()"
+          (input)="newExerciseName.set($any($event.target).value)"
+          (keyup.enter)="addExercise()"
+        />
+        <button class="add-exercise-btn" (click)="addExercise()">
+          + ADD EXERCISE
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
