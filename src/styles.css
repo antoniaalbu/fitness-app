@@ -1,6 +1,4 @@
-/* src/styles.css */
 
-/* Reset all margins and paddings */
 * {
   margin: 0;
   padding: 0;
@@ -15,18 +13,18 @@ html, body {
   overflow-x: hidden;
 }
 
-/* Remove default margins from common elements */
+
 h1, h2, h3, h4, h5, h6, p, ul, ol, li, figure, blockquote, dl, dd {
   margin: 0;
   padding: 0;
 }
 
-/* Remove list styles */
+
 ul, ol {
   list-style: none;
 }
 
-/* Remove default button styles */
+
 button {
   border: none;
   background: none;
@@ -36,13 +34,12 @@ button {
   cursor: pointer;
 }
 
-/* Remove default link styles */
 a {
   text-decoration: none;
   color: inherit;
 }
 
-/* Remove default input styles */
+
 input, textarea, select {
   margin: 0;
   padding: 0;

@@ -1,29 +1,9 @@
-// dashboard.component.ts
-import { Component, signal, computed } from '@angular/core';
+import { Component, signal, computed, OnInit, OnDestroy, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
-import { getAuth, signOut } from 'firebase/auth';
-
-interface ExerciseSet {
-  reps: number;
-  weight: number;
-}
-
-interface Exercise {
-  id: string;
-  name: string;
-  sets: ExerciseSet[];
-  unit: string; // 'kg' or 'lbs'
-  notes?: string;
-}
-
-interface Workout {
-  id: string;
-  name: string;
-  date: string;
-  exercises: Exercise[];
-}
+import { Auth, signOut } from '@angular/fire/auth';
+import { WorkoutService, Workout, Exercise, ExerciseSet } from '../services/workout.service';
 
 @Component({
   selector: 'app-exercise-page',
@@ -32,270 +12,212 @@ interface Workout {
   templateUrl: './exercise-page.component.html',
   styleUrls: ['./exercise-page.component.css']
 })
-export class ExerciseComponent {
-  userName = signal('Alex Johnson');
-  
-  // Workouts data - hardcoded examples based on your format
-  workouts = signal<Workout[]>([
-    {
-      id: 'lower-1',
-      name: 'LOWER BODY',
-      date: '2025-12-03',
-      exercises: [
-        {
-          id: 'step-ups',
-          name: 'Step ups',
-          sets: [
-            { reps: 12, weight: 15 },
-            { reps: 10, weight: 18 },
-            { reps: 8, weight: 20 }
-          ],
-          unit: 'kg'
-        },
-        {
-          id: 'kickbacks',
-          name: 'Kickbacks',
-          sets: [
-            { reps: 15, weight: 40 },
-            { reps: 13, weight: 45 },
-            { reps: 11, weight: 50 }
-          ],
-          unit: 'kg'
-        },
-        {
-          id: 'indreptari',
-          name: 'Îndreptări',
-          sets: [
-            { reps: 12, weight: 5 },
-            { reps: 12, weight: 5 },
-            { reps: 9, weight: 7.5 }
-          ],
-          unit: 'kg'
-        },
-        {
-          id: 'aductii',
-          name: 'Aducții',
-          sets: [
-            { reps: 13, weight: 40 },
-            { reps: 13, weight: 40 },
-            { reps: 13, weight: 40 },
-            { reps: 13, weight: 40 }
-          ],
-          unit: 'kg'
-        },
-        {
-          id: 'extensii',
-          name: 'Extensii quads',
-          sets: [
-            { reps: 12, weight: 0 },
-            { reps: 12, weight: 0 },
-            { reps: 12, weight: 0 },
-            { reps: 12, weight: 0 }
-          ],
-          unit: 'kg',
-          notes: 'bodyweight'
-        }
-      ]
-    },
-    {
-      id: 'upper-1',
-      name: 'UPPER BODY',
-      date: '2025-12-04',
-      exercises: [
-        {
-          id: 'ramat',
-          name: 'Ramât',
-          sets: [
-            { reps: 13, weight: 19 },
-            { reps: 11, weight: 21 },
-            { reps: 11, weight: 21 },
-            { reps: 9, weight: 24 }
-          ],
-          unit: 'kg'
-        },
-        {
-          id: 'tractiuni',
-          name: 'Tracțiuni',
-          sets: [
-            { reps: 13, weight: 24 },
-            { reps: 9, weight: 27 },
-            { reps: 9, weight: 27 },
-            { reps: 7, weight: 29 }
-          ],
-          unit: 'kg'
-        },
-        {
-          id: 'face-pull',
-          name: 'Face pull',
-          sets: [
-            { reps: 13, weight: 20 },
-            { reps: 13, weight: 20 },
-            { reps: 9, weight: 25 }
-          ],
-          unit: 'kg'
-        },
-        {
-          id: 'arnold',
-          name: 'Arnold press',
-          sets: [
-            { reps: 13, weight: 3 },
-            { reps: 13, weight: 3 },
-            { reps: 9, weight: 5 }
-          ],
-          unit: 'kg'
-        },
-        {
-          id: 'triceps',
-          name: 'Triceps',
-          sets: [
-            { reps: 13, weight: 10 },
-            { reps: 13, weight: 10 },
-            { reps: 11, weight: 15 }
-          ],
-          unit: 'kg'
-        },
-        {
-          id: 'biceps',
-          name: 'Biceps',
-          sets: [
-            { reps: 12, weight: 3 },
-            { reps: 12, weight: 3 },
-            { reps: 8, weight: 5 }
-          ],
-          unit: 'kg'
-        },
-        {
-          id: 'ridicari',
-          name: 'Ridicări laterale',
-          sets: [
-            { reps: 13, weight: 3 },
-            { reps: 13, weight: 3 },
-            { reps: 9, weight: 5 }
-          ],
-          unit: 'kg'
-        },
-        {
-          id: 'lombar',
-          name: 'Lombar',
-          sets: [
-            { reps: 12, weight: 0 },
-            { reps: 12, weight: 0 },
-            { reps: 12, weight: 0 }
-          ],
-          unit: 'kg',
-          notes: 'bodyweight'
-        }
-      ]
-    }
-  ]);
-  
+export class ExerciseComponent implements OnInit, OnDestroy {
+  private router = inject(Router);
+  private auth = inject(Auth);
+  private workoutService = inject(WorkoutService);
+
+  userName = signal('Loading...');
+  workouts = signal<Workout[]>([]);
   activeWorkoutIndex = signal(0);
   newExerciseName = signal('');
   
-  activeWorkout = computed(() => this.workouts()[this.activeWorkoutIndex()]);
+
+  private saveTimeout: any = null;
+
+  activeWorkout = computed(() => 
+    this.workouts()[this.activeWorkoutIndex()] ?? { 
+      id: 'default', 
+      name: 'Default Workout', 
+      date: new Date().toISOString().split('T')[0], 
+      exercises: [] 
+    } as Workout
+  );
+
+  ngOnInit() {
+    
+    this.auth.onAuthStateChanged((user) => {
+      if (user) {
+        this.userName.set(user.displayName || user.email || 'User');
+        this.loadWorkouts();
+      } else {
+        console.log('No user logged in');
+        this.router.navigate(['/auth']);
+      }
+    });
+  }
+
+  ngOnDestroy() {
+   
+    if (this.saveTimeout) {
+      clearTimeout(this.saveTimeout);
+    }
+  }
+
+  async loadWorkouts() {
+    try {
+      const user = this.auth.currentUser;
+      if (!user) {
+        console.warn('User not authenticated, redirecting to login');
+        this.router.navigate(['/auth']);
+        return;
+      }
+
+      console.log('Loading workouts for user:', user.uid);
+      const workouts = await this.workoutService.loadWorkouts();
+      
+      console.log('Workouts loaded:', workouts.length, 'workout(s)');
+      this.workouts.set(workouts);
+    } catch (err: any) {
+      console.error('Failed to load workouts:', err);
+      console.error('Error code:', err?.code);
+      console.error('Error message:', err?.message);
+      
+      if (err?.code === 'permission-denied') {
+        console.warn('Permission denied - redirecting to login');
+        this.router.navigate(['/auth']);
+      }
+      
+      this.workouts.set([]);
+    }
+  }
+
+  private async saveWorkouts() {
   
-  constructor(private router: Router) {}
-  
-  // Switch between workouts
+    if (this.saveTimeout) {
+      clearTimeout(this.saveTimeout);
+    }
+    
+    
+    this.saveTimeout = setTimeout(async () => {
+      try {
+        await this.workoutService.saveWorkouts(this.workouts());
+      } catch (error) {
+        console.error('Error saving workouts:', error);
+      }
+    }, 500); 
+  }
+
   switchWorkout(index: number) {
     this.activeWorkoutIndex.set(index);
   }
-  
-  // Add new exercise
+
+  async addWorkoutData() {
+    try {
+      const workouts = await this.workoutService.createInitialWorkouts();
+      console.log('Initial workouts created successfully!');
+      this.workouts.set(workouts);
+    } catch (error) {
+      console.error('Error creating initial workouts:', error);
+    }
+  }
+
   addExercise() {
     const name = this.newExerciseName().trim();
     if (!name) return;
-    
+
     const workouts = [...this.workouts()];
-    const newExercise: Exercise = {
+    const activeWorkout = workouts[this.activeWorkoutIndex()];
+    
+    if (!activeWorkout) {
+      console.error('No active workout');
+      return;
+    }
+
+    activeWorkout.exercises.push({
       id: Date.now().toString(),
-      name: name,
+      name,
       sets: [{ reps: 10, weight: 0 }],
       unit: 'kg'
-    };
-    
-    workouts[this.activeWorkoutIndex()].exercises.push(newExercise);
+    });
+
     this.workouts.set(workouts);
     this.newExerciseName.set('');
+    this.saveWorkouts();
   }
-  
-  // Delete exercise
+
   deleteExercise(exerciseId: string) {
     const workouts = [...this.workouts()];
-    workouts[this.activeWorkoutIndex()].exercises = 
-      workouts[this.activeWorkoutIndex()].exercises.filter(e => e.id !== exerciseId);
+    const activeWorkout = workouts[this.activeWorkoutIndex()];
+    
+    if (!activeWorkout) return;
+
+    activeWorkout.exercises = activeWorkout.exercises.filter(e => e.id !== exerciseId);
+
     this.workouts.set(workouts);
+    this.saveWorkouts();
   }
-  
-  // Add set to exercise
+
   addSet(exerciseId: string) {
     const workouts = [...this.workouts()];
-    const exercise = workouts[this.activeWorkoutIndex()].exercises.find(e => e.id === exerciseId);
+    const exercise = workouts[this.activeWorkoutIndex()]?.exercises.find(e => e.id === exerciseId);
+    
     if (exercise) {
       const lastSet = exercise.sets[exercise.sets.length - 1];
       exercise.sets.push({ ...lastSet });
+      this.workouts.set(workouts);
+      this.saveWorkouts();
     }
-    this.workouts.set(workouts);
   }
-  
-  // Remove set from exercise
+
   removeSet(exerciseId: string, setIndex: number) {
     const workouts = [...this.workouts()];
-    const exercise = workouts[this.activeWorkoutIndex()].exercises.find(e => e.id === exerciseId);
+    const exercise = workouts[this.activeWorkoutIndex()]?.exercises.find(e => e.id === exerciseId);
+    
     if (exercise && exercise.sets.length > 1) {
       exercise.sets.splice(setIndex, 1);
+      this.workouts.set(workouts);
+      this.saveWorkouts();
     }
-    this.workouts.set(workouts);
   }
-  
-  // Increase/decrease reps
+
   adjustReps(exerciseId: string, setIndex: number, delta: number) {
     const workouts = [...this.workouts()];
-    const exercise = workouts[this.activeWorkoutIndex()].exercises.find(e => e.id === exerciseId);
-    if (exercise) {
-      const newReps = Math.max(0, exercise.sets[setIndex].reps + delta);
-      exercise.sets[setIndex].reps = newReps;
+    const exercise = workouts[this.activeWorkoutIndex()]?.exercises.find(e => e.id === exerciseId);
+    
+    if (exercise && exercise.sets[setIndex]) {
+      exercise.sets[setIndex].reps = Math.max(0, exercise.sets[setIndex].reps + delta);
+      this.workouts.set(workouts);
+      this.saveWorkouts();
     }
-    this.workouts.set(workouts);
   }
-  
-  // Increase/decrease weight
+
   adjustWeight(exerciseId: string, setIndex: number, delta: number) {
     const workouts = [...this.workouts()];
-    const exercise = workouts[this.activeWorkoutIndex()].exercises.find(e => e.id === exerciseId);
-    if (exercise) {
-      const newWeight = Math.max(0, exercise.sets[setIndex].weight + delta);
-      exercise.sets[setIndex].weight = newWeight;
+    const exercise = workouts[this.activeWorkoutIndex()]?.exercises.find(e => e.id === exerciseId);
+    
+    if (exercise && exercise.sets[setIndex]) {
+      exercise.sets[setIndex].weight = Math.max(0, exercise.sets[setIndex].weight + delta);
+      this.workouts.set(workouts);
+      this.saveWorkouts();
     }
-    this.workouts.set(workouts);
   }
-  
-  // Manual input for reps
+
   updateReps(exerciseId: string, setIndex: number, value: string) {
     const workouts = [...this.workouts()];
-    const exercise = workouts[this.activeWorkoutIndex()].exercises.find(e => e.id === exerciseId);
-    if (exercise) {
-      const reps = parseInt(value) || 0;
-      exercise.sets[setIndex].reps = Math.max(0, reps);
+    const exercise = workouts[this.activeWorkoutIndex()]?.exercises.find(e => e.id === exerciseId);
+    
+    if (exercise && exercise.sets[setIndex]) {
+      exercise.sets[setIndex].reps = Math.max(0, parseInt(value) || 0);
+      this.workouts.set(workouts);
+      this.saveWorkouts();
     }
-    this.workouts.set(workouts);
   }
-  
-  // Manual input for weight
+
   updateWeight(exerciseId: string, setIndex: number, value: string) {
     const workouts = [...this.workouts()];
-    const exercise = workouts[this.activeWorkoutIndex()].exercises.find(e => e.id === exerciseId);
-    if (exercise) {
-      const weight = parseFloat(value) || 0;
-      exercise.sets[setIndex].weight = Math.max(0, weight);
+    const exercise = workouts[this.activeWorkoutIndex()]?.exercises.find(e => e.id === exerciseId);
+    
+    if (exercise && exercise.sets[setIndex]) {
+      exercise.sets[setIndex].weight = Math.max(0, parseFloat(value) || 0);
+      this.workouts.set(workouts);
+      this.saveWorkouts();
     }
-    this.workouts.set(workouts);
   }
-  
+
   async logout() {
-    const auth = getAuth();
     try {
-      await signOut(auth);
+      await signOut(this.auth);
       this.router.navigate(['/auth']);
       console.log('Logged out successfully');
     } catch (error) {
@@ -303,5 +225,3 @@ export class ExerciseComponent {
     }
   }
 }
-
-

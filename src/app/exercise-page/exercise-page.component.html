@@ -1,5 +1,5 @@
 <div class="dashboard">
-  <!-- Navigation -->
+  
   <nav class="dashboard-nav">
     <div class="nav-content">
       <div class="logo">
@@ -17,9 +17,9 @@
     </div>
   </nav>
 
-  <!-- Main Content -->
+  
   <div class="dashboard-content">
-    <!-- Workout Selector -->
+    
     <div class="workout-tabs">
       @for (workout of workouts(); track workout.id) {
         <button 
@@ -32,7 +32,7 @@
       }
     </div>
 
-    <!-- Current Workout -->
+    
     <div class="workout-container">
       <div class="workout-header">
         <h1 class="workout-title">{{ activeWorkout().name }}</h1>
@@ -42,7 +42,7 @@
         </div>
       </div>
 
-      <!-- Exercise List -->
+     
       <div class="exercises-list">
         @for (exercise of activeWorkout().exercises; track exercise.id) {
           <div class="exercise-card">
@@ -62,13 +62,13 @@
               <div class="exercise-notes">{{ exercise.notes }}</div>
             }
 
-            <!-- Sets -->
+            
             <div class="sets-list">
               @for (set of exercise.sets; track $index) {
                 <div class="set-row">
                   <div class="set-number">SET {{ $index + 1 }}</div>
                   
-                  <!-- Reps Control -->
+                 
                   <div class="set-control">
                     <button class="control-btn minus" (click)="adjustReps(exercise.id, $index, -1)">
                       −
@@ -88,7 +88,7 @@
                     </button>
                   </div>
 
-                  <!-- Weight Control -->
+                 
                   <div class="set-control">
                     <button class="control-btn minus" (click)="adjustWeight(exercise.id, $index, -2.5)">
                       −
@@ -109,7 +109,7 @@
                     </button>
                   </div>
 
-                  <!-- Delete Set Button -->
+                  
                   @if (exercise.sets.length > 1) {
                     <button class="delete-set-btn" (click)="removeSet(exercise.id, $index)">
                       ✕
@@ -119,7 +119,7 @@
               }
             </div>
 
-            <!-- Set Summary -->
+           
             <div class="set-summary">
               {{ exercise.sets.length }} sets total
             </div>
@@ -127,7 +127,7 @@
         }
       </div>
 
-      <!-- Add Exercise -->
+      
       <div class="add-exercise-card">
         <input 
           type="text" 
@@ -140,6 +140,7 @@
         <button class="add-exercise-btn" (click)="addExercise()">
           + ADD EXERCISE
         </button>
+        
       </div>
     </div>
   </div>

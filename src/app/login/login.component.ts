@@ -1,8 +1,8 @@
-// auth.component.ts
+// login.component.ts
 import { Component, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Auth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, FacebookAuthProvider } from '@angular/fire/auth';
+import { Auth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, FacebookAuthProvider, updateProfile } from '@angular/fire/auth';
 import { inject } from '@angular/core';
 import { Router } from '@angular/router';
 
@@ -17,7 +17,6 @@ export class LoginComponent {
   private auth = inject(Auth);
   private router = inject(Router);
 
-  // Signals
   isLogin = signal(true);
   email = signal('');
   password = signal('');
@@ -31,36 +30,34 @@ export class LoginComponent {
     this.errorMessage.set('');
   }
 
-   async handleSubmit(event: Event) {
+  async handleSubmit(event: Event) {
     event.preventDefault();
     this.loading.set(true);
     this.errorMessage.set('');
 
     try {
       if (this.isLogin()) {
-        // Login
-        await signInWithEmailAndPassword(
-          this.auth,
-          this.email(),
-          this.password()
-        );
-        console.log('Login successful');
-        // Redirect to dashboard
+        await signInWithEmailAndPassword(this.auth, this.email(), this.password());
         this.router.navigate(['/dashboard']);
       } else {
-        // Signup
         if (this.password() !== this.confirmPassword()) {
           this.errorMessage.set('Passwords do not match');
           this.loading.set(false);
           return;
         }
-        await createUserWithEmailAndPassword(
+
+        // Create account
+        const userCredential = await createUserWithEmailAndPassword(
           this.auth,
           this.email(),
           this.password()
         );
-        console.log('Signup successful');
-        // Redirect to dashboard
+
+        // Save display name
+        await updateProfile(userCredential.user, {
+          displayName: this.name()
+        });
+
         this.router.navigate(['/dashboard']);
       }
     } catch (error: any) {
@@ -76,8 +73,6 @@ export class LoginComponent {
     try {
       const provider = new GoogleAuthProvider();
       await signInWithPopup(this.auth, provider);
-      console.log('Google authentication successful');
-      // Redirect to dashboard
       this.router.navigate(['/dashboard']);
     } catch (error: any) {
       this.errorMessage.set(error.message || 'Google authentication failed');
@@ -92,7 +87,6 @@ export class LoginComponent {
     try {
       const provider = new FacebookAuthProvider();
       await signInWithPopup(this.auth, provider);
-      console.log('Facebook authentication successful');
     } catch (error: any) {
       this.errorMessage.set(error.message || 'Facebook authentication failed');
     } finally {
@@ -100,4 +94,3 @@ export class LoginComponent {
     }
   }
 }
-

@@ -87,6 +87,64 @@
         </div>
       </section>
 
+      <!-- NEW: MY WORKOUTS SECTION -->
+      <section class="dashboard-card workouts-overview-card">
+        <div class="card-header">
+          <h2 class="card-title">MY WORKOUTS</h2>
+          <button class="card-action" (click)="goToExercises()">VIEW ALL →</button>
+        </div>
+        <div class="workouts-summary">
+          <div class="summary-stat">
+            <div class="summary-value">{{ workouts().length }}</div>
+            <div class="summary-label">Total Workouts</div>
+          </div>
+          <div class="summary-stat">
+            <div class="summary-value">{{ totalExercises() }}</div>
+            <div class="summary-label">Total Exercises</div>
+          </div>
+          <div class="summary-stat">
+            <div class="summary-value">{{ totalWorkoutSets() }}</div>
+            <div class="summary-label">Total Sets</div>
+          </div>
+        </div>
+        <div class="workouts-list">
+          @for (workout of workouts(); track workout.id) {
+            <div class="workout-preview" (click)="goToExercises()">
+              <div class="workout-preview-header">
+                <div class="workout-preview-name">{{ workout.name }}</div>
+                <div class="workout-preview-date">{{ workout.date }}</div>
+              </div>
+              <div class="workout-preview-stats">
+                <span class="preview-stat">
+                  <span class="stat-icon-small">🏋️</span>
+                  {{ getExerciseCount(workout) }} exercises
+                </span>
+                <span class="preview-stat">
+                  <span class="stat-icon-small">📊</span>
+                  {{ getTotalSets(workout) }} sets
+                </span>
+              </div>
+              <div class="workout-preview-exercises">
+                @for (exercise of workout.exercises.slice(0, 3); track exercise.id) {
+                  <span class="exercise-tag">{{ exercise.name }}</span>
+                }
+                @if (workout.exercises.length > 3) {
+                  <span class="exercise-tag more">+{{ workout.exercises.length - 3 }} more</span>
+                }
+              </div>
+            </div>
+          } @empty {
+            <div class="empty-state">
+              <div class="empty-icon">🏋️‍♂️</div>
+              <div class="empty-text">No workouts yet</div>
+              <button class="empty-action" (click)="goToExercises()">
+                Create Your First Workout
+              </button>
+            </div>
+          }
+        </div>
+      </section>
+
      
       <section class="dashboard-card goals-card">
         <div class="card-header">
