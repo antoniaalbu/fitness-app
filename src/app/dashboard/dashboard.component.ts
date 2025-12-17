@@ -1,9 +1,11 @@
 import { Component, signal, computed, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { Auth, signOut } from '@angular/fire/auth';
 import { UserDataService } from '../services/user-data.service';
 import { WorkoutService, Workout } from '../services/workout.service';
+import { ModalComponent } from '../modal/modal.component';
 
 interface WorkoutSet {
   exercise: string;
@@ -39,7 +41,7 @@ interface ProgressData {
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, FormsModule, ModalComponent],
   templateUrl: './dashboard.component.html',
   styleUrls: ['./dashboard.component.css']
 })
@@ -56,9 +58,55 @@ export class DashboardComponent implements OnInit {
   goals = signal<Goal[]>([]);
   mealPlan = signal<Meal[]>([]);
   progressData = signal<ProgressData[]>([]);
-  
-  // Add workouts from workout service
   workouts = signal<Workout[]>([]);
+
+  // Modal states
+  showGoalModal = signal(false);
+  showMealModal = signal(false);
+  showWorkoutModal = signal(false);
+  showProgressModal = signal(false);
+
+  // Edit states
+  editingGoal = signal<Goal | null>(null);
+  editingGoalIndex = signal<number | null>(null);
+  editingMeal = signal<Meal | null>(null);
+  editingMealIndex = signal<number | null>(null);
+  editingWorkout = signal<WorkoutSet | null>(null);
+  editingWorkoutIndex = signal<number | null>(null);
+  editingProgress = signal<ProgressData | null>(null);
+  editingProgressIndex = signal<number | null>(null);
+
+  // Form data
+  goalForm = signal<Goal>({
+    title: '',
+    current: 0,
+    target: 0,
+    unit: 'lbs',
+    deadline: ''
+  });
+
+  mealForm = signal<Meal>({
+    name: '',
+    time: '',
+    calories: 0,
+    protein: 0,
+    carbs: 0,
+    fats: 0
+  });
+
+  workoutForm = signal<WorkoutSet>({
+    exercise: '',
+    sets: 0,
+    reps: 0,
+    weight: 0,
+    completed: false
+  });
+
+  progressForm = signal<ProgressData>({
+    date: '',
+    weight: 0,
+    workouts: 0
+  });
 
   async ngOnInit() {
     this.auth.onAuthStateChanged(async (user) => {
@@ -71,38 +119,8 @@ export class DashboardComponent implements OnInit {
     });
   }
 
-  async createInitialData() {
-    const defaultWorkout: WorkoutSet[] = [
-      { exercise: 'Bench Press', sets: 4, reps: 8, weight: 185, completed: false },
-      { exercise: 'Squats', sets: 4, reps: 10, weight: 225, completed: false }
-    ];
-
-    const defaultGoals: Goal[] = [
-      { title: 'Bench Max', current: 185, target: 225, unit: 'lbs', deadline: '2025-01-01' }
-    ];
-
-    const defaultMeals: Meal[] = [
-      { name: 'Chicken + Rice', time: '12:00 PM', calories: 650, protein: 50, carbs: 65, fats: 10 }
-    ];
-
-    const defaultProgress: ProgressData[] = [
-      { date: 'Mon', weight: 185, workouts: 1 }
-    ];
-
-    await this.userData.createData('workout/today', { data: defaultWorkout });
-    await this.userData.createData('goals/list', { data: defaultGoals });
-    await this.userData.createData('meals/plan', { data: defaultMeals });
-    await this.userData.createData('progress/weekly', { data: defaultProgress });
-
-    this.todayWorkout.set(defaultWorkout);
-    this.goals.set(defaultGoals);
-    this.mealPlan.set(defaultMeals);
-    this.progressData.set(defaultProgress);
-  }
-
   async loadAllData() {
     try {
-      
       const workout = await this.userData.getData('workout/today');
       const goals = await this.userData.getData('goals/list');
       const meals = await this.userData.getData('meals/plan');
@@ -113,7 +131,6 @@ export class DashboardComponent implements OnInit {
       this.mealPlan.set(meals?.['data'] ?? []);
       this.progressData.set(progress?.['data'] ?? []);
 
-      // Load workouts from workout service
       const workouts = await this.workoutService.loadWorkouts();
       this.workouts.set(workouts);
     } catch (error) {
@@ -121,6 +138,7 @@ export class DashboardComponent implements OnInit {
     }
   }
 
+  // Computed values
   totalCalories = computed(() =>
     this.mealPlan().reduce((sum, meal) => sum + meal.calories, 0)
   );
@@ -141,12 +159,10 @@ export class DashboardComponent implements OnInit {
     this.totalSets() > 0 ? Math.round((this.completedSets() / this.totalSets()) * 100) : 0
   );
 
-
   totalExercises = computed(() =>
     this.workouts().reduce((sum, workout) => sum + workout.exercises.length, 0)
   );
 
-  
   totalWorkoutSets = computed(() =>
     this.workouts().reduce((sum, workout) => 
       sum + workout.exercises.reduce((exerciseSum, exercise) => 
@@ -158,31 +174,175 @@ export class DashboardComponent implements OnInit {
   async toggleWorkoutComplete(index: number) {
     const workouts = this.todayWorkout();
     workouts[index].completed = !workouts[index].completed;
-
     this.todayWorkout.set([...workouts]);
-
-    await this.userData.updateData('workout/today', {
-      data: workouts
-    });
+    await this.userData.updateData('workout/today', { data: workouts });
   }
 
   getGoalProgress(goal: Goal): number {
     return Math.round((goal.current / goal.target) * 100);
   }
 
-  
   goToExercises() {
     this.router.navigate(['/exercises']);
   }
 
-  
   getExerciseCount(workout: Workout): number {
     return workout.exercises.length;
   }
 
-  
   getTotalSets(workout: Workout): number {
     return workout.exercises.reduce((sum, exercise) => sum + exercise.sets.length, 0);
+  }
+
+  // Goal Modal Methods
+  openAddGoalModal() {
+    this.editingGoal.set(null);
+    this.editingGoalIndex.set(null);
+    this.goalForm.set({
+      title: '',
+      current: 0,
+      target: 0,
+      unit: 'lbs',
+      deadline: ''
+    });
+    this.showGoalModal.set(true);
+  }
+
+  openEditGoalModal(goal: Goal, index: number) {
+    this.editingGoal.set(goal);
+    this.editingGoalIndex.set(index);
+    this.goalForm.set({ ...goal });
+    this.showGoalModal.set(true);
+  }
+
+  async saveGoal() {
+    const goals = [...this.goals()];
+    const index = this.editingGoalIndex();
+    
+    if (index !== null) {
+      goals[index] = this.goalForm();
+    } else {
+      goals.push(this.goalForm());
+    }
+    
+    this.goals.set(goals);
+    await this.userData.updateData('goals/list', { data: goals });
+    this.closeGoalModal();
+  }
+
+  async deleteGoal(index: number) {
+    if (confirm('Are you sure you want to delete this goal?')) {
+      const goals = this.goals().filter((_, i) => i !== index);
+      this.goals.set(goals);
+      await this.userData.updateData('goals/list', { data: goals });
+    }
+  }
+
+  closeGoalModal() {
+    this.showGoalModal.set(false);
+    this.editingGoal.set(null);
+    this.editingGoalIndex.set(null);
+  }
+
+  // Meal Modal Methods
+  openAddMealModal() {
+    this.editingMeal.set(null);
+    this.editingMealIndex.set(null);
+    this.mealForm.set({
+      name: '',
+      time: '',
+      calories: 0,
+      protein: 0,
+      carbs: 0,
+      fats: 0
+    });
+    this.showMealModal.set(true);
+  }
+
+  openEditMealModal(meal: Meal, index: number) {
+    this.editingMeal.set(meal);
+    this.editingMealIndex.set(index);
+    this.mealForm.set({ ...meal });
+    this.showMealModal.set(true);
+  }
+
+  async saveMeal() {
+    const meals = [...this.mealPlan()];
+    const index = this.editingMealIndex();
+    
+    if (index !== null) {
+      meals[index] = this.mealForm();
+    } else {
+      meals.push(this.mealForm());
+    }
+    
+    this.mealPlan.set(meals);
+    await this.userData.updateData('meals/plan', { data: meals });
+    this.closeMealModal();
+  }
+
+  async deleteMeal(index: number) {
+    if (confirm('Are you sure you want to delete this meal?')) {
+      const meals = this.mealPlan().filter((_, i) => i !== index);
+      this.mealPlan.set(meals);
+      await this.userData.updateData('meals/plan', { data: meals });
+    }
+  }
+
+  closeMealModal() {
+    this.showMealModal.set(false);
+    this.editingMeal.set(null);
+    this.editingMealIndex.set(null);
+  }
+
+  // Workout Modal Methods
+  openAddWorkoutModal() {
+    this.editingWorkout.set(null);
+    this.editingWorkoutIndex.set(null);
+    this.workoutForm.set({
+      exercise: '',
+      sets: 0,
+      reps: 0,
+      weight: 0,
+      completed: false
+    });
+    this.showWorkoutModal.set(true);
+  }
+
+  openEditWorkoutModal(workout: WorkoutSet, index: number) {
+    this.editingWorkout.set(workout);
+    this.editingWorkoutIndex.set(index);
+    this.workoutForm.set({ ...workout });
+    this.showWorkoutModal.set(true);
+  }
+
+  async saveWorkout() {
+    const workouts = [...this.todayWorkout()];
+    const index = this.editingWorkoutIndex();
+    
+    if (index !== null) {
+      workouts[index] = this.workoutForm();
+    } else {
+      workouts.push(this.workoutForm());
+    }
+    
+    this.todayWorkout.set(workouts);
+    await this.userData.updateData('workout/today', { data: workouts });
+    this.closeWorkoutModal();
+  }
+
+  async deleteWorkout(index: number) {
+    if (confirm('Are you sure you want to delete this workout?')) {
+      const workouts = this.todayWorkout().filter((_, i) => i !== index);
+      this.todayWorkout.set(workouts);
+      await this.userData.updateData('workout/today', { data: workouts });
+    }
+  }
+
+  closeWorkoutModal() {
+    this.showWorkoutModal.set(false);
+    this.editingWorkout.set(null);
+    this.editingWorkoutIndex.set(null);
   }
 
   async logout() {

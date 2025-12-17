@@ -1,5 +1,5 @@
 <div class="dashboard">
-  
+  <!-- Navigation -->
   <nav class="dashboard-nav">
     <div class="nav-content">
       <div class="logo">
@@ -11,15 +11,13 @@
           <span class="user-name">{{ userName() }}</span>
           <span class="user-streak">🔥 {{ userStreak() }} day streak</span>
         </div>
-        <button class="logout-button" (click)="logout()">
-          LOGOUT
-        </button>
+        <button class="logout-button" (click)="logout()">LOGOUT</button>
       </div>
     </div>
   </nav>
 
   <div class="dashboard-content">
-   
+    <!-- Hero Stats -->
     <section class="hero-stats">
       <div class="stat-card primary">
         <div class="stat-icon">💪</div>
@@ -57,16 +55,15 @@
       </div>
     </section>
 
-    
     <div class="dashboard-grid">
-     
+      <!-- Today's Workout Card -->
       <section class="dashboard-card workout-card">
         <div class="card-header">
           <h2 class="card-title">TODAY'S WORKOUT</h2>
-          <span class="card-badge">PUSH DAY</span>
+          <button class="card-action" (click)="openAddWorkoutModal()">+ ADD</button>
         </div>
         <div class="workout-list">
-          @for (workout of todayWorkout(); track workout.exercise) {
+          @for (workout of todayWorkout(); track $index) {
             <div class="workout-item" [class.completed]="workout.completed">
               <div class="workout-checkbox" (click)="toggleWorkoutComplete($index)">
                 @if (workout.completed) {
@@ -82,12 +79,16 @@
                   }
                 </div>
               </div>
+              <div class="workout-actions">
+                <button class="action-btn edit" (click)="openEditWorkoutModal(workout, $index)">✏️</button>
+                <button class="action-btn delete" (click)="deleteWorkout($index)">🗑️</button>
+              </div>
             </div>
           }
         </div>
       </section>
 
-      <!-- NEW: MY WORKOUTS SECTION -->
+      <!-- My Workouts Overview -->
       <section class="dashboard-card workouts-overview-card">
         <div class="card-header">
           <h2 class="card-title">MY WORKOUTS</h2>
@@ -145,18 +146,21 @@
         </div>
       </section>
 
-     
+      <!-- Goals Card -->
       <section class="dashboard-card goals-card">
         <div class="card-header">
           <h2 class="card-title">YOUR GOALS</h2>
-          <button class="card-action">+ ADD</button>
+          <button class="card-action" (click)="openAddGoalModal()">+ ADD</button>
         </div>
         <div class="goals-list">
-          @for (goal of goals(); track goal.title) {
+          @for (goal of goals(); track $index) {
             <div class="goal-item">
               <div class="goal-header">
                 <span class="goal-title">{{ goal.title }}</span>
-                <span class="goal-deadline">{{ goal.deadline }}</span>
+                <div class="goal-actions">
+                  <button class="action-btn-small edit" (click)="openEditGoalModal(goal, $index)">✏️</button>
+                  <button class="action-btn-small delete" (click)="deleteGoal($index)">🗑️</button>
+                </div>
               </div>
               <div class="goal-progress-bar">
                 <div class="goal-fill" [style.width.%]="getGoalProgress(goal)"></div>
@@ -165,12 +169,13 @@
                 <span class="goal-current">{{ goal.current }} {{ goal.unit }}</span>
                 <span class="goal-target">{{ goal.target }} {{ goal.unit }}</span>
               </div>
+              <div class="goal-deadline">Deadline: {{ goal.deadline }}</div>
             </div>
           }
         </div>
       </section>
 
-      
+      <!-- Progress Card -->
       <section class="dashboard-card progress-card">
         <div class="card-header">
           <h2 class="card-title">WEEKLY PROGRESS</h2>
@@ -193,14 +198,14 @@
         </div>
       </section>
 
-      
+      <!-- Diet Card -->
       <section class="dashboard-card diet-card">
         <div class="card-header">
           <h2 class="card-title">TODAY'S MEALS</h2>
-          <button class="card-action">EDIT</button>
+          <button class="card-action" (click)="openAddMealModal()">+ ADD</button>
         </div>
         <div class="meals-list">
-          @for (meal of mealPlan(); track meal.time) {
+          @for (meal of mealPlan(); track $index) {
             <div class="meal-item">
               <div class="meal-time">{{ meal.time }}</div>
               <div class="meal-info">
@@ -212,6 +217,10 @@
                   <span class="macro">F: {{ meal.fats }}g</span>
                 </div>
               </div>
+              <div class="meal-actions">
+                <button class="action-btn-small edit" (click)="openEditMealModal(meal, $index)">✏️</button>
+                <button class="action-btn-small delete" (click)="deleteMeal($index)">🗑️</button>
+              </div>
             </div>
           }
         </div>
@@ -219,3 +228,192 @@
     </div>
   </div>
 </div>
+
+<!-- MODALS -->
+
+<!-- Goal Modal -->
+<app-modal 
+  [isOpen]="showGoalModal()" 
+  [title]="editingGoal() ? 'Edit Goal' : 'Add Goal'"
+  (closeModal)="closeGoalModal()">
+  <form class="modal-form" (submit)="saveGoal(); $event.preventDefault()">
+    <div class="form-group">
+      <label>Goal Title</label>
+      <input 
+        type="text" 
+        [(ngModel)]="goalForm().title"
+        name="title"
+        placeholder="e.g., Bench Press Max"
+        required>
+    </div>
+    
+    <div class="form-row">
+      <div class="form-group">
+        <label>Current</label>
+        <input 
+          type="number" 
+          [(ngModel)]="goalForm().current"
+          name="current"
+          required>
+      </div>
+      
+      <div class="form-group">
+        <label>Target</label>
+        <input 
+          type="number" 
+          [(ngModel)]="goalForm().target"
+          name="target"
+          required>
+      </div>
+      
+      <div class="form-group">
+        <label>Unit</label>
+        <select [(ngModel)]="goalForm().unit" name="unit">
+          <option value="lbs">lbs</option>
+          <option value="kg">kg</option>
+          <option value="reps">reps</option>
+        </select>
+      </div>
+    </div>
+    
+    <div class="form-group">
+      <label>Deadline</label>
+      <input 
+        type="date" 
+        [(ngModel)]="goalForm().deadline"
+        name="deadline"
+        required>
+    </div>
+    
+    <div class="form-actions">
+      <button type="button" class="btn-cancel" (click)="closeGoalModal()">Cancel</button>
+      <button type="submit" class="btn-save">Save Goal</button>
+    </div>
+  </form>
+</app-modal>
+
+<!-- Meal Modal -->
+<app-modal 
+  [isOpen]="showMealModal()" 
+  [title]="editingMeal() ? 'Edit Meal' : 'Add Meal'"
+  (closeModal)="closeMealModal()">
+  <form class="modal-form" (submit)="saveMeal(); $event.preventDefault()">
+    <div class="form-group">
+      <label>Meal Name</label>
+      <input 
+        type="text" 
+        [(ngModel)]="mealForm().name"
+        name="name"
+        placeholder="e.g., Chicken & Rice"
+        required>
+    </div>
+    
+    <div class="form-group">
+      <label>Time</label>
+      <input 
+        type="time" 
+        [(ngModel)]="mealForm().time"
+        name="time"
+        required>
+    </div>
+    
+    <div class="form-row">
+      <div class="form-group">
+        <label>Calories</label>
+        <input 
+          type="number" 
+          [(ngModel)]="mealForm().calories"
+          name="calories"
+          required>
+      </div>
+      
+      <div class="form-group">
+        <label>Protein (g)</label>
+        <input 
+          type="number" 
+          [(ngModel)]="mealForm().protein"
+          name="protein"
+          required>
+      </div>
+    </div>
+    
+    <div class="form-row">
+      <div class="form-group">
+        <label>Carbs (g)</label>
+        <input 
+          type="number" 
+          [(ngModel)]="mealForm().carbs"
+          name="carbs"
+          required>
+      </div>
+      
+      <div class="form-group">
+        <label>Fats (g)</label>
+        <input 
+          type="number" 
+          [(ngModel)]="mealForm().fats"
+          name="fats"
+          required>
+      </div>
+    </div>
+    
+    <div class="form-actions">
+      <button type="button" class="btn-cancel" (click)="closeMealModal()">Cancel</button>
+      <button type="submit" class="btn-save">Save Meal</button>
+    </div>
+  </form>
+</app-modal>
+
+<!-- Workout Modal -->
+<app-modal 
+  [isOpen]="showWorkoutModal()" 
+  [title]="editingWorkout() ? 'Edit Exercise' : 'Add Exercise'"
+  (closeModal)="closeWorkoutModal()">
+  <form class="modal-form" (submit)="saveWorkout(); $event.preventDefault()">
+    <div class="form-group">
+      <label>Exercise Name</label>
+      <input 
+        type="text" 
+        [(ngModel)]="workoutForm().exercise"
+        name="exercise"
+        placeholder="e.g., Bench Press"
+        required>
+    </div>
+    
+    <div class="form-row">
+      <div class="form-group">
+        <label>Sets</label>
+        <input 
+          type="number" 
+          [(ngModel)]="workoutForm().sets"
+          name="sets"
+          min="1"
+          required>
+      </div>
+      
+      <div class="form-group">
+        <label>Reps</label>
+        <input 
+          type="number" 
+          [(ngModel)]="workoutForm().reps"
+          name="reps"
+          min="1"
+          required>
+      </div>
+      
+      <div class="form-group">
+        <label>Weight (lbs)</label>
+        <input 
+          type="number" 
+          [(ngModel)]="workoutForm().weight"
+          name="weight"
+          min="0">
+      </div>
+    </div>
+    
+    <div class="form-actions">
+      <button type="button" class="btn-cancel" (click)="closeWorkoutModal()">Cancel</button>
+      <button type="submit" class="btn-save">Save Exercise</button>
+    </div>
+  </form>
+</app-modal>
