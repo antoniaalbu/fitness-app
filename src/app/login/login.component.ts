@@ -1,4 +1,4 @@
-// login.component.ts
+
 import { Component, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -46,14 +46,14 @@ export class LoginComponent {
           return;
         }
 
-        // Create account
+        
         const userCredential = await createUserWithEmailAndPassword(
           this.auth,
           this.email(),
           this.password()
         );
 
-        // Save display name
+        
         await updateProfile(userCredential.user, {
           displayName: this.name()
         });

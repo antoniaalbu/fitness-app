@@ -102,7 +102,7 @@ export class DashboardComponent implements OnInit {
 
   async loadAllData() {
     try {
-      // Load dashboard data
+      
       const workout = await this.userData.getData('workout/today');
       const goals = await this.userData.getData('goals/list');
       const meals = await this.userData.getData('meals/plan');
@@ -141,12 +141,12 @@ export class DashboardComponent implements OnInit {
     this.totalSets() > 0 ? Math.round((this.completedSets() / this.totalSets()) * 100) : 0
   );
 
-  // Calculate total exercises across all workouts
+
   totalExercises = computed(() =>
     this.workouts().reduce((sum, workout) => sum + workout.exercises.length, 0)
   );
 
-  // Calculate total sets across all workouts
+  
   totalWorkoutSets = computed(() =>
     this.workouts().reduce((sum, workout) => 
       sum + workout.exercises.reduce((exerciseSum, exercise) => 
@@ -170,17 +170,17 @@ export class DashboardComponent implements OnInit {
     return Math.round((goal.current / goal.target) * 100);
   }
 
-  // Navigate to exercise page
+  
   goToExercises() {
     this.router.navigate(['/exercises']);
   }
 
-  // Get exercise count for a specific workout
+  
   getExerciseCount(workout: Workout): number {
     return workout.exercises.length;
   }
 
-  // Get total sets for a specific workout
+  
   getTotalSets(workout: Workout): number {
     return workout.exercises.reduce((sum, exercise) => sum + exercise.sets.length, 0);
   }

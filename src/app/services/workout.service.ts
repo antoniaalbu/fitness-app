@@ -40,9 +40,7 @@ export class WorkoutService {
     return doc(this.firestore, `users/${this.uid}/workouts/list`);
   }
 
-  /**
-   * Load all workouts from Firestore
-   */
+ 
   async loadWorkouts(): Promise<Workout[]> {
     try {
       const docRef = this.getWorkoutsDocRef();
@@ -60,9 +58,7 @@ export class WorkoutService {
     }
   }
 
-  /**
-   * Save all workouts to Firestore
-   */
+  
   async saveWorkouts(workouts: Workout[]): Promise<void> {
     try {
       const docRef = this.getWorkoutsDocRef();
@@ -74,9 +70,7 @@ export class WorkoutService {
     }
   }
 
-  /**
-   * Create initial workout data
-   */
+  
   async createInitialWorkouts(): Promise<Workout[]> {
     const timestamp = Date.now();
     const workouts: Workout[] = [
@@ -247,9 +241,6 @@ export class WorkoutService {
     return workouts;
   }
 
-  /**
-   * Add a new workout
-   */
   async addWorkout(workouts: Workout[], name: string): Promise<Workout[]> {
     const newWorkout: Workout = {
       id: Date.now().toString(),
@@ -263,9 +254,7 @@ export class WorkoutService {
     return updatedWorkouts;
   }
 
-  /**
-   * Delete a workout
-   */
+  
   async deleteWorkout(workouts: Workout[], workoutId: string): Promise<Workout[]> {
     const updatedWorkouts = workouts.filter(w => w.id !== workoutId);
     await this.saveWorkouts(updatedWorkouts);
