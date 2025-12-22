@@ -11,7 +11,7 @@ export interface Exercise {
   id: string;
   name: string;
   sets: ExerciseSet[];
-  unit: string; 
+  unit: string;
   notes?: string;
 }
 
@@ -20,6 +20,19 @@ export interface Workout {
   name: string;
   date: string;
   exercises: Exercise[];
+}
+
+export interface WorkoutHistoryEntry {
+  id: string;
+  workoutName: string;
+  exerciseName: string;
+  date: string;
+  timestamp: number;
+  sets: ExerciseSet[];
+  unit: string;
+  totalVolume: number; // total weight × reps
+  maxWeight: number;
+  totalReps: number;
 }
 
 @Injectable({
@@ -40,7 +53,13 @@ export class WorkoutService {
     return doc(this.firestore, `users/${this.uid}/workouts/list`);
   }
 
- 
+  private getHistoryDocRef() {
+    if (!this.uid) {
+      throw new Error('User not authenticated');
+    }
+    return doc(this.firestore, `users/${this.uid}/workouts/history`);
+  }
+
   async loadWorkouts(): Promise<Workout[]> {
     try {
       const docRef = this.getWorkoutsDocRef();
@@ -58,7 +77,6 @@ export class WorkoutService {
     }
   }
 
-  
   async saveWorkouts(workouts: Workout[]): Promise<void> {
     try {
       const docRef = this.getWorkoutsDocRef();
@@ -70,7 +88,103 @@ export class WorkoutService {
     }
   }
 
-  
+  // Load workout history
+  async loadHistory(): Promise<WorkoutHistoryEntry[]> {
+    try {
+      const docRef = this.getHistoryDocRef();
+      const snapshot = await getDoc(docRef);
+      
+      if (snapshot.exists()) {
+        const data = snapshot.data();
+        return (data?.['entries'] || []).sort((a: WorkoutHistoryEntry, b: WorkoutHistoryEntry) => 
+          b.timestamp - a.timestamp
+        );
+      }
+      
+      return [];
+    } catch (error) {
+      console.error('Error loading history:', error);
+      throw error;
+    }
+  }
+
+  // Log a workout session to history
+  async logWorkoutSession(workout: Workout): Promise<void> {
+    try {
+      const timestamp = Date.now();
+      const historyEntries: WorkoutHistoryEntry[] = [];
+
+      // Create history entry for each exercise
+      for (const exercise of workout.exercises) {
+        if (exercise.sets.length === 0) continue;
+
+        const totalVolume = exercise.sets.reduce((sum, set) => 
+          sum + (set.weight * set.reps), 0
+        );
+        const maxWeight = Math.max(...exercise.sets.map(s => s.weight));
+        const totalReps = exercise.sets.reduce((sum, set) => sum + set.reps, 0);
+
+        historyEntries.push({
+          id: `${timestamp}-${exercise.id}`,
+          workoutName: workout.name,
+          exerciseName: exercise.name,
+          date: workout.date,
+          timestamp,
+          sets: [...exercise.sets],
+          unit: exercise.unit,
+          totalVolume,
+          maxWeight,
+          totalReps
+        });
+      }
+
+      if (historyEntries.length === 0) return;
+
+      // Load existing history and append new entries
+      const existingHistory = await this.loadHistory();
+      const updatedHistory = [...existingHistory, ...historyEntries];
+
+      // Keep only last 100 entries to avoid bloat
+      const trimmedHistory = updatedHistory.slice(0, 100);
+
+      const docRef = this.getHistoryDocRef();
+      await setDoc(docRef, { entries: trimmedHistory });
+      
+      console.log(`📝 Logged ${historyEntries.length} exercises to history`);
+    } catch (error) {
+      console.error('Error logging workout session:', error);
+      throw error;
+    }
+  }
+
+  // Get progress data for a specific exercise
+  getExerciseProgress(history: WorkoutHistoryEntry[], exerciseName: string): WorkoutHistoryEntry[] {
+    return history
+      .filter(entry => entry.exerciseName.toLowerCase() === exerciseName.toLowerCase())
+      .sort((a, b) => a.timestamp - b.timestamp);
+  }
+
+  // Get recent workouts summary
+  getRecentWorkoutsSummary(history: WorkoutHistoryEntry[], days: number = 7): {
+    totalSessions: number;
+    totalVolume: number;
+    totalExercises: number;
+    avgVolumePerSession: number;
+  } {
+    const cutoff = Date.now() - (days * 24 * 60 * 60 * 1000);
+    const recentEntries = history.filter(entry => entry.timestamp >= cutoff);
+
+    const sessions = new Set(recentEntries.map(e => e.timestamp)).size;
+    const totalVolume = recentEntries.reduce((sum, e) => sum + e.totalVolume, 0);
+
+    return {
+      totalSessions: sessions,
+      totalVolume: Math.round(totalVolume),
+      totalExercises: recentEntries.length,
+      avgVolumePerSession: sessions > 0 ? Math.round(totalVolume / sessions) : 0
+    };
+  }
+
   async createInitialWorkouts(): Promise<Workout[]> {
     const timestamp = Date.now();
     const workouts: Workout[] = [
@@ -254,7 +368,6 @@ export class WorkoutService {
     return updatedWorkouts;
   }
 
-  
   async deleteWorkout(workouts: Workout[], workoutId: string): Promise<Workout[]> {
     const updatedWorkouts = workouts.filter(w => w.id !== workoutId);
     await this.saveWorkouts(updatedWorkouts);

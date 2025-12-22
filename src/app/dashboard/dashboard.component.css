@@ -140,6 +140,265 @@
   font-weight: 600;
 }
 
+/* Workout History Card */
+.history-card {
+  grid-column: span 2;
+}
+
+.history-summary {
+  display: flex;
+  gap: 2rem;
+  padding: 1.5rem;
+  background: #f4a3ff;
+  border-bottom: 3px solid #000;
+}
+
+.summary-stat-small {
+  flex: 1;
+  text-align: center;
+}
+
+.summary-value-small {
+  font-size: 2rem;
+  font-weight: 900;
+  color: #000;
+  line-height: 1;
+  margin-bottom: 0.5rem;
+}
+
+.summary-label-small {
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  color: #000;
+  text-transform: uppercase;
+}
+
+.history-filter {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem 1.5rem;
+  background: #f5f5f5;
+  border-bottom: 2px solid #000;
+}
+
+.filter-label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  color: #000;
+  text-transform: uppercase;
+}
+
+.filter-select {
+  flex: 1;
+  padding: 0.5rem 1rem;
+  border: 2px solid #000;
+  background: #fff;
+  font-size: 0.875rem;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.filter-select:focus {
+  outline: none;
+  background: #f4a3ff;
+  box-shadow: 2px 2px 0 #000;
+}
+
+.history-list {
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  max-height: 500px;
+  overflow-y: auto;
+}
+
+.history-list::-webkit-scrollbar {
+  width: 8px;
+}
+
+.history-list::-webkit-scrollbar-thumb {
+  background: #000;
+}
+
+.history-list::-webkit-scrollbar-track {
+  background: #f5f5f5;
+}
+
+.history-item {
+  padding: 1.25rem;
+  border: 3px solid #000;
+  background: #fff;
+  transition: all 0.3s;
+}
+
+.history-item:hover {
+  background: #f5f5f5;
+  transform: translateX(3px);
+  box-shadow: 4px 4px 0 #000;
+}
+
+.history-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 1rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 2px solid #000;
+}
+
+.history-info {
+  flex: 1;
+}
+
+.history-exercise {
+  font-size: 1.125rem;
+  font-weight: 900;
+  color: #000;
+  margin-bottom: 0.25rem;
+}
+
+.history-workout {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #f4a3ff;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.history-date {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #666;
+  text-align: right;
+}
+
+.history-stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.history-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0.5rem;
+  background: #f5f5f5;
+  border: 2px solid #000;
+}
+
+.stat-label-tiny {
+  font-size: 0.625rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  color: #666;
+  text-transform: uppercase;
+  margin-bottom: 0.25rem;
+}
+
+.stat-value-tiny {
+  font-size: 1.25rem;
+  font-weight: 900;
+  color: #000;
+}
+
+.history-sets {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.set-badge {
+  padding: 0.375rem 0.75rem;
+  background: #000;
+  color: #f4a3ff;
+  border: 2px solid #000;
+  font-size: 0.75rem;
+  font-weight: 700;
+  box-shadow: 2px 2px 0 #f4a3ff;
+}
+
+.empty-state-small {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 3rem 1.5rem;
+  text-align: center;
+}
+
+.empty-icon-small {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+  opacity: 0.6;
+}
+
+.empty-text-small {
+  font-size: 1.125rem;
+  font-weight: 900;
+  color: #000;
+  margin-bottom: 0.5rem;
+}
+
+.empty-subtext {
+  font-size: 0.875rem;
+  color: #666;
+  font-weight: 600;
+}
+
+/* Responsive adjustments */
+@media (max-width: 1024px) {
+  .history-card {
+    grid-column: span 1;
+  }
+
+  .history-summary {
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .summary-stat-small {
+    text-align: left;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .history-stats {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .history-filter {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .filter-select {
+    width: 100%;
+  }
+
+  .history-stats {
+    grid-template-columns: 1fr;
+  }
+
+  .history-header {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .history-date {
+    text-align: left;
+  }
+}
+
 /* Modal Form Styles */
 .modal-form {
   display: flex;

@@ -22,6 +22,8 @@ export class ExerciseComponent implements OnInit, OnDestroy {
   activeWorkoutIndex = signal(0);
   newExerciseName = signal('');
   
+  // Success message for logging
+  logSuccessMessage = signal('');
 
   private saveTimeout: any = null;
 
@@ -35,7 +37,6 @@ export class ExerciseComponent implements OnInit, OnDestroy {
   );
 
   ngOnInit() {
-    
     this.auth.onAuthStateChanged((user) => {
       if (user) {
         this.userName.set(user.displayName || user.email || 'User');
@@ -48,7 +49,6 @@ export class ExerciseComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy() {
-   
     if (this.saveTimeout) {
       clearTimeout(this.saveTimeout);
     }
@@ -83,11 +83,9 @@ export class ExerciseComponent implements OnInit, OnDestroy {
   }
 
   private async saveWorkouts() {
-  
     if (this.saveTimeout) {
       clearTimeout(this.saveTimeout);
     }
-    
     
     this.saveTimeout = setTimeout(async () => {
       try {
@@ -95,7 +93,28 @@ export class ExerciseComponent implements OnInit, OnDestroy {
       } catch (error) {
         console.error('Error saving workouts:', error);
       }
-    }, 500); 
+    }, 500);
+  }
+
+  // Log the current workout to history
+  async logCurrentWorkout() {
+    try {
+      const workout = this.activeWorkout();
+      if (!workout || workout.exercises.length === 0) {
+        alert('No exercises to log!');
+        return;
+      }
+
+      await this.workoutService.logWorkoutSession(workout);
+      
+      this.logSuccessMessage.set('✅ Workout logged successfully!');
+      setTimeout(() => this.logSuccessMessage.set(''), 3000);
+      
+      console.log('Workout logged to history!');
+    } catch (error) {
+      console.error('Error logging workout:', error);
+      alert('Failed to log workout. Please try again.');
+    }
   }
 
   switchWorkout(index: number) {

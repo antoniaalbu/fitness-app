@@ -4,7 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { Auth, signOut } from '@angular/fire/auth';
 import { UserDataService } from '../services/user-data.service';
-import { WorkoutService, Workout } from '../services/workout.service';
+import { WorkoutService, Workout, WorkoutHistoryEntry } from '../services/workout.service';
 import { ModalComponent } from '../modal/modal.component';
 
 interface WorkoutSet {
@@ -59,6 +59,10 @@ export class DashboardComponent implements OnInit {
   mealPlan = signal<Meal[]>([]);
   progressData = signal<ProgressData[]>([]);
   workouts = signal<Workout[]>([]);
+  
+  // Workout history
+  workoutHistory = signal<WorkoutHistoryEntry[]>([]);
+  selectedExerciseForHistory = signal<string | null>(null);
 
   // Modal states
   showGoalModal = signal(false);
@@ -108,6 +112,28 @@ export class DashboardComponent implements OnInit {
     workouts: 0
   });
 
+  // Computed values for history
+  recentHistory = computed(() => 
+    this.workoutHistory().slice(0, 10)
+  );
+
+  uniqueExercises = computed(() => {
+    const exercises = new Set(this.workoutHistory().map(h => h.exerciseName));
+    return Array.from(exercises).sort();
+  });
+
+  filteredHistory = computed(() => {
+    const selected = this.selectedExerciseForHistory();
+    if (!selected) return this.recentHistory();
+    return this.workoutHistory()
+      .filter(h => h.exerciseName === selected)
+      .slice(0, 10);
+  });
+
+  historySummary = computed(() => 
+    this.workoutService.getRecentWorkoutsSummary(this.workoutHistory(), 7)
+  );
+
   async ngOnInit() {
     this.auth.onAuthStateChanged(async (user) => {
       if (user) {
@@ -133,6 +159,10 @@ export class DashboardComponent implements OnInit {
 
       const workouts = await this.workoutService.loadWorkouts();
       this.workouts.set(workouts);
+
+      // Load workout history
+      const history = await this.workoutService.loadHistory();
+      this.workoutHistory.set(history);
     } catch (error) {
       console.error('Error loading dashboard data:', error);
     }
@@ -192,6 +222,21 @@ export class DashboardComponent implements OnInit {
 
   getTotalSets(workout: Workout): number {
     return workout.exercises.reduce((sum, exercise) => sum + exercise.sets.length, 0);
+  }
+
+  // History methods
+  selectExercise(exerciseName: string | null) {
+    this.selectedExerciseForHistory.set(exerciseName);
+  }
+
+  formatDate(dateString: string): string {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  }
+
+  formatTimestamp(timestamp: number): string {
+    const date = new Date(timestamp);
+    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
   }
 
   // Goal Modal Methods

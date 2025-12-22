@@ -175,6 +175,88 @@
         </div>
       </section>
 
+      <!-- Workout History Card -->
+      <section class="dashboard-card history-card">
+        <div class="card-header">
+          <h2 class="card-title">WORKOUT HISTORY</h2>
+          <span class="card-badge">LAST 7 DAYS</span>
+        </div>
+        
+        <!-- Summary Stats -->
+        <div class="history-summary">
+          <div class="summary-stat-small">
+            <div class="summary-value-small">{{ historySummary().totalSessions }}</div>
+            <div class="summary-label-small">Sessions</div>
+          </div>
+          <div class="summary-stat-small">
+            <div class="summary-value-small">{{ historySummary().totalExercises }}</div>
+            <div class="summary-label-small">Exercises</div>
+          </div>
+          <div class="summary-stat-small">
+            <div class="summary-value-small">{{ historySummary().totalVolume }}</div>
+            <div class="summary-label-small">Total Volume (kg)</div>
+          </div>
+        </div>
+
+        <!-- Exercise Filter -->
+        <div class="history-filter">
+          <label class="filter-label">FILTER BY EXERCISE:</label>
+          <select 
+            class="filter-select" 
+            [value]="selectedExerciseForHistory() || ''"
+            (change)="selectExercise($any($event.target).value || null)">
+            <option value="">All Exercises</option>
+            @for (exercise of uniqueExercises(); track exercise) {
+              <option [value]="exercise">{{ exercise }}</option>
+            }
+          </select>
+        </div>
+
+        <!-- History List -->
+        <div class="history-list">
+          @for (entry of filteredHistory(); track entry.id) {
+            <div class="history-item">
+              <div class="history-header">
+                <div class="history-info">
+                  <div class="history-exercise">{{ entry.exerciseName }}</div>
+                  <div class="history-workout">{{ entry.workoutName }}</div>
+                </div>
+                <div class="history-date">{{ formatTimestamp(entry.timestamp) }}</div>
+              </div>
+              <div class="history-stats">
+                <div class="history-stat">
+                  <span class="stat-label-tiny">SETS</span>
+                  <span class="stat-value-tiny">{{ entry.sets.length }}</span>
+                </div>
+                <div class="history-stat">
+                  <span class="stat-label-tiny">REPS</span>
+                  <span class="stat-value-tiny">{{ entry.totalReps }}</span>
+                </div>
+                <div class="history-stat">
+                  <span class="stat-label-tiny">MAX WEIGHT</span>
+                  <span class="stat-value-tiny">{{ entry.maxWeight }} {{ entry.unit }}</span>
+                </div>
+                <div class="history-stat">
+                  <span class="stat-label-tiny">VOLUME</span>
+                  <span class="stat-value-tiny">{{ entry.totalVolume }} {{ entry.unit }}</span>
+                </div>
+              </div>
+              <div class="history-sets">
+                @for (set of entry.sets; track $index) {
+                  <span class="set-badge">{{ set.reps }} × {{ set.weight }}{{ entry.unit }}</span>
+                }
+              </div>
+            </div>
+          } @empty {
+            <div class="empty-state-small">
+              <div class="empty-icon-small">📊</div>
+              <div class="empty-text-small">No workout history yet</div>
+              <div class="empty-subtext">Complete exercises and log them to track progress</div>
+            </div>
+          }
+        </div>
+      </section>
+
       <!-- Progress Card -->
       <section class="dashboard-card progress-card">
         <div class="card-header">

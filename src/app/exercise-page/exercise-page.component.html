@@ -19,6 +19,20 @@
 
   
   <div class="dashboard-content">
+
+    <div class="workout-actions-header">
+    <button 
+      class="log-workout-btn" 
+      (click)="logCurrentWorkout()"
+      [disabled]="activeWorkout().exercises.length === 0">
+      <span class="btn-icon">📝</span>
+      LOG THIS WORKOUT
+    </button>
+    
+    @if (logSuccessMessage()) {
+      <div class="success-message">{{ logSuccessMessage() }}</div>
+    }
+  </div>
     
     <div class="workout-tabs">
       @for (workout of workouts(); track workout.id) {
