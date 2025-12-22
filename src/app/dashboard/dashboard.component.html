@@ -1,5 +1,7 @@
 <div class="dashboard">
-  <!-- Navigation -->
+  <!-- ============================================
+       NAVIGATION BAR
+       ============================================ -->
   <nav class="dashboard-nav">
     <div class="nav-content">
       <div class="logo">
@@ -16,47 +18,66 @@
     </div>
   </nav>
 
+  <!-- ============================================
+       HERO SECTION WITH STATS
+       ============================================ -->
+  <section class="hero-section">
+    <div class="hero-background"></div>
+    <div class="hero-content">
+      <div class="hero-text">
+        <h1 class="hero-title">TRAIN LIKE A BEAST</h1>
+        <p class="hero-subtitle">Track your progress • Crush your goals • Become unstoppable</p>
+      </div>
+      
+      <!-- Stats Cards -->
+      <div class="hero-stats">
+        <div class="stat-card primary">
+          <div class="stat-icon">💪</div>
+          <div class="stat-info">
+            <div class="stat-value">{{ completedSets() }}/{{ totalSets() }}</div>
+            <div class="stat-label">SETS COMPLETED</div>
+          </div>
+          <div class="stat-progress">
+            <div class="progress-bar" [style.width.%]="workoutProgress()"></div>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-icon">🍽️</div>
+          <div class="stat-info">
+            <div class="stat-value">{{ totalCalories() }}</div>
+            <div class="stat-label">CALORIES TODAY</div>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-icon">🥩</div>
+          <div class="stat-info">
+            <div class="stat-value">{{ totalProtein() }}g</div>
+            <div class="stat-label">PROTEIN TODAY</div>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-icon">🎯</div>
+          <div class="stat-info">
+            <div class="stat-value">{{ goals().length }}</div>
+            <div class="stat-label">ACTIVE GOALS</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================
+       MAIN DASHBOARD CONTENT
+       ============================================ -->
   <div class="dashboard-content">
-    <!-- Hero Stats -->
-    <section class="hero-stats">
-      <div class="stat-card primary">
-        <div class="stat-icon">💪</div>
-        <div class="stat-info">
-          <div class="stat-value">{{ completedSets() }}/{{ totalSets() }}</div>
-          <div class="stat-label">SETS COMPLETED</div>
-        </div>
-        <div class="stat-progress">
-          <div class="progress-bar" [style.width.%]="workoutProgress()"></div>
-        </div>
-      </div>
-
-      <div class="stat-card">
-        <div class="stat-icon">🍽️</div>
-        <div class="stat-info">
-          <div class="stat-value">{{ totalCalories() }}</div>
-          <div class="stat-label">CALORIES TODAY</div>
-        </div>
-      </div>
-
-      <div class="stat-card">
-        <div class="stat-icon">🥩</div>
-        <div class="stat-info">
-          <div class="stat-value">{{ totalProtein() }}g</div>
-          <div class="stat-label">PROTEIN TODAY</div>
-        </div>
-      </div>
-
-      <div class="stat-card">
-        <div class="stat-icon">🎯</div>
-        <div class="stat-info">
-          <div class="stat-value">{{ goals().length }}</div>
-          <div class="stat-label">ACTIVE GOALS</div>
-        </div>
-      </div>
-    </section>
-
     <div class="dashboard-grid">
-      <!-- Today's Workout Card -->
+      
+      <!-- ============================================
+           TODAY'S WORKOUT CARD
+           ============================================ -->
       <section class="dashboard-card workout-card">
         <div class="card-header">
           <h2 class="card-title">TODAY'S WORKOUT</h2>
@@ -88,12 +109,15 @@
         </div>
       </section>
 
-      <!-- My Workouts Overview -->
+      <!-- ============================================
+           MY WORKOUTS OVERVIEW CARD
+           ============================================ -->
       <section class="dashboard-card workouts-overview-card">
         <div class="card-header">
           <h2 class="card-title">MY WORKOUTS</h2>
           <button class="card-action" (click)="goToExercises()">VIEW ALL →</button>
         </div>
+        
         <div class="workouts-summary">
           <div class="summary-stat">
             <div class="summary-value">{{ workouts().length }}</div>
@@ -108,6 +132,7 @@
             <div class="summary-label">Total Sets</div>
           </div>
         </div>
+        
         <div class="workouts-list">
           @for (workout of workouts(); track workout.id) {
             <div class="workout-preview" (click)="goToExercises()">
@@ -146,7 +171,9 @@
         </div>
       </section>
 
-      <!-- Goals Card -->
+      <!-- ============================================
+           GOALS CARD
+           ============================================ -->
       <section class="dashboard-card goals-card">
         <div class="card-header">
           <h2 class="card-title">YOUR GOALS</h2>
@@ -175,7 +202,9 @@
         </div>
       </section>
 
-      <!-- Workout History Card -->
+      <!-- ============================================
+           WORKOUT HISTORY CARD
+           ============================================ -->
       <section class="dashboard-card history-card">
         <div class="card-header">
           <h2 class="card-title">WORKOUT HISTORY</h2>
@@ -257,7 +286,9 @@
         </div>
       </section>
 
-      <!-- Progress Card -->
+      <!-- ============================================
+           WEEKLY PROGRESS CARD
+           ============================================ -->
       <section class="dashboard-card progress-card">
         <div class="card-header">
           <h2 class="card-title">WEEKLY PROGRESS</h2>
@@ -280,7 +311,9 @@
         </div>
       </section>
 
-      <!-- Diet Card -->
+      <!-- ============================================
+           TODAY'S MEALS CARD
+           ============================================ -->
       <section class="dashboard-card diet-card">
         <div class="card-header">
           <h2 class="card-title">TODAY'S MEALS</h2>
@@ -307,11 +340,14 @@
           }
         </div>
       </section>
+
     </div>
   </div>
 </div>
 
-<!-- MODALS -->
+<!-- ============================================
+     MODALS
+     ============================================ -->
 
 <!-- Goal Modal -->
 <app-modal 
