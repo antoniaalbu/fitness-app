@@ -19,50 +19,46 @@
   </nav>
 
   <!-- ============================================
-       HERO SECTION WITH STATS
+       HERO SECTION WITH QUICK STATS
        ============================================ -->
   <section class="hero-section">
-    <div class="hero-background"></div>
     <div class="hero-content">
       <div class="hero-text">
         <h1 class="hero-title">TRAIN LIKE A BEAST</h1>
         <p class="hero-subtitle">Track your progress • Crush your goals • Become unstoppable</p>
       </div>
       
-      <!-- Stats Cards -->
-      <div class="hero-stats">
-        <div class="stat-card primary">
+      <!-- Quick Stats - 4 small cards -->
+      <div class="quick-stats">
+        <div class="quick-stat-card primary">
           <div class="stat-icon">💪</div>
           <div class="stat-info">
             <div class="stat-value">{{ completedSets() }}/{{ totalSets() }}</div>
-            <div class="stat-label">SETS COMPLETED</div>
-          </div>
-          <div class="stat-progress">
-            <div class="progress-bar" [style.width.%]="workoutProgress()"></div>
+            <div class="stat-label">SETS TODAY</div>
           </div>
         </div>
 
-        <div class="stat-card">
+        <div class="quick-stat-card">
           <div class="stat-icon">🍽️</div>
           <div class="stat-info">
             <div class="stat-value">{{ totalCalories() }}</div>
-            <div class="stat-label">CALORIES TODAY</div>
+            <div class="stat-label">CALORIES</div>
           </div>
         </div>
 
-        <div class="stat-card">
+        <div class="quick-stat-card">
           <div class="stat-icon">🥩</div>
           <div class="stat-info">
             <div class="stat-value">{{ totalProtein() }}g</div>
-            <div class="stat-label">PROTEIN TODAY</div>
+            <div class="stat-label">PROTEIN</div>
           </div>
         </div>
 
-        <div class="stat-card">
+        <div class="quick-stat-card">
           <div class="stat-icon">🎯</div>
           <div class="stat-info">
             <div class="stat-value">{{ goals().length }}</div>
-            <div class="stat-label">ACTIVE GOALS</div>
+            <div class="stat-label">GOALS</div>
           </div>
         </div>
       </div>
@@ -70,49 +66,116 @@
   </section>
 
   <!-- ============================================
-       MAIN DASHBOARD CONTENT
+       MAIN DASHBOARD CONTENT - 3 COLUMN GRID
        ============================================ -->
   <div class="dashboard-content">
     <div class="dashboard-grid">
       
       <!-- ============================================
-           TODAY'S WORKOUT CARD
+           ROW 1: TODAY'S WORKOUT (1 col) | GOALS (1 col) | MEALS (1 col)
            ============================================ -->
-      <section class="dashboard-card workout-card">
+      
+      <!-- TODAY'S WORKOUT -->
+      <section class="dashboard-card card-small">
         <div class="card-header">
           <h2 class="card-title">TODAY'S WORKOUT</h2>
           <button class="card-action" (click)="openAddWorkoutModal()">+ ADD</button>
         </div>
-        <div class="workout-list">
-          @for (workout of todayWorkout(); track $index) {
-            <div class="workout-item" [class.completed]="workout.completed">
-              <div class="workout-checkbox" (click)="toggleWorkoutComplete($index)">
-                @if (workout.completed) {
-                  <span class="check-icon">✓</span>
-                }
-              </div>
-              <div class="workout-info">
-                <div class="workout-name">{{ workout.exercise }}</div>
-                <div class="workout-details">
-                  {{ workout.sets }} sets × {{ workout.reps }} reps
-                  @if (workout.weight > 0) {
-                    <span> • {{ workout.weight }} lbs</span>
+        <div class="card-content">
+          <div class="workout-list">
+            @for (workout of todayWorkout(); track $index) {
+              <div class="workout-item" [class.completed]="workout.completed">
+                <div class="workout-checkbox" (click)="toggleWorkoutComplete($index)">
+                  @if (workout.completed) {
+                    <span class="check-icon">✓</span>
                   }
                 </div>
+                <div class="workout-info">
+                  <div class="workout-name">{{ workout.exercise }}</div>
+                  <div class="workout-details">
+                    {{ workout.sets }} × {{ workout.reps }}
+                    @if (workout.weight > 0) {
+                      <span> • {{ workout.weight }}lb</span>
+                    }
+                  </div>
+                </div>
+                <div class="workout-actions">
+                  <button class="action-btn edit" (click)="openEditWorkoutModal(workout, $index)">✏️</button>
+                  <button class="action-btn delete" (click)="deleteWorkout($index)">🗑️</button>
+                </div>
               </div>
-              <div class="workout-actions">
-                <button class="action-btn edit" (click)="openEditWorkoutModal(workout, $index)">✏️</button>
-                <button class="action-btn delete" (click)="deleteWorkout($index)">🗑️</button>
+            }
+          </div>
+        </div>
+      </section>
+
+      <!-- YOUR GOALS -->
+      <section class="dashboard-card card-small">
+        <div class="card-header">
+          <h2 class="card-title">YOUR GOALS</h2>
+          <button class="card-action" (click)="openAddGoalModal()">+ ADD</button>
+        </div>
+        <div class="card-content">
+          <div class="goals-list">
+            @for (goal of goals(); track $index) {
+              <div class="goal-item">
+                <div class="goal-header">
+                  <span class="goal-title">{{ goal.title }}</span>
+                  <div class="goal-actions">
+                    <button class="action-btn-small edit" (click)="openEditGoalModal(goal, $index)">✏️</button>
+                    <button class="action-btn-small delete" (click)="deleteGoal($index)">🗑️</button>
+                  </div>
+                </div>
+                <div class="goal-progress-bar">
+                  <div class="goal-fill" [style.width.%]="getGoalProgress(goal)"></div>
+                </div>
+                <div class="goal-stats">
+                  <span class="goal-current">{{ goal.current }} {{ goal.unit }}</span>
+                  <span class="goal-target">{{ goal.target }} {{ goal.unit }}</span>
+                </div>
+                <div class="goal-deadline">{{ goal.deadline }}</div>
               </div>
-            </div>
-          }
+            }
+          </div>
+        </div>
+      </section>
+
+      <!-- TODAY'S MEALS -->
+      <section class="dashboard-card card-small">
+        <div class="card-header">
+          <h2 class="card-title">TODAY'S MEALS</h2>
+          <button class="card-action" (click)="openAddMealModal()">+ ADD</button>
+        </div>
+        <div class="card-content">
+          <div class="meals-list">
+            @for (meal of mealPlan(); track $index) {
+              <div class="meal-item">
+                <div class="meal-time">{{ meal.time }}</div>
+                <div class="meal-info">
+                  <div class="meal-name">{{ meal.name }}</div>
+                  <div class="meal-macros">
+                    <span class="macro">{{ meal.calories }} cal</span>
+                    <span class="macro">P: {{ meal.protein }}g</span>
+                    <span class="macro">C: {{ meal.carbs }}g</span>
+                    <span class="macro">F: {{ meal.fats }}g</span>
+                  </div>
+                </div>
+                <div class="meal-actions">
+                  <button class="action-btn-small edit" (click)="openEditMealModal(meal, $index)">✏️</button>
+                  <button class="action-btn-small delete" (click)="deleteMeal($index)">🗑️</button>
+                </div>
+              </div>
+            }
+          </div>
         </div>
       </section>
 
       <!-- ============================================
-           MY WORKOUTS OVERVIEW CARD
+           ROW 2: MY WORKOUTS (2 cols) | WEEKLY PROGRESS (1 col)
            ============================================ -->
-      <section class="dashboard-card workouts-overview-card">
+      
+      <!-- MY WORKOUTS OVERVIEW -->
+      <section class="dashboard-card card-medium">
         <div class="card-header">
           <h2 class="card-title">MY WORKOUTS</h2>
           <button class="card-action" (click)="goToExercises()">VIEW ALL →</button>
@@ -121,11 +184,11 @@
         <div class="workouts-summary">
           <div class="summary-stat">
             <div class="summary-value">{{ workouts().length }}</div>
-            <div class="summary-label">Total Workouts</div>
+            <div class="summary-label">Workouts</div>
           </div>
           <div class="summary-stat">
             <div class="summary-value">{{ totalExercises() }}</div>
-            <div class="summary-label">Total Exercises</div>
+            <div class="summary-label">Exercises</div>
           </div>
           <div class="summary-stat">
             <div class="summary-value">{{ totalWorkoutSets() }}</div>
@@ -171,65 +234,43 @@
         </div>
       </section>
 
-      <!-- ============================================
-           GOALS CARD
-           ============================================ -->
-      <section class="dashboard-card goals-card">
+      <!-- WEEKLY PROGRESS -->
+      <section class="dashboard-card card-small">
         <div class="card-header">
-          <h2 class="card-title">YOUR GOALS</h2>
-          <button class="card-action" (click)="openAddGoalModal()">+ ADD</button>
+          <h2 class="card-title">WEEKLY PROGRESS</h2>
+          <span class="card-badge">WEIGHT</span>
         </div>
-        <div class="goals-list">
-          @for (goal of goals(); track $index) {
-            <div class="goal-item">
-              <div class="goal-header">
-                <span class="goal-title">{{ goal.title }}</span>
-                <div class="goal-actions">
-                  <button class="action-btn-small edit" (click)="openEditGoalModal(goal, $index)">✏️</button>
-                  <button class="action-btn-small delete" (click)="deleteGoal($index)">🗑️</button>
+        <div class="progress-chart">
+          @for (day of progressData(); track day.date) {
+            <div class="chart-bar">
+              <div class="bar-container">
+                <div 
+                  class="bar-fill" 
+                  [style.height.%]="(day.workouts / 2) * 100"
+                  [class.active]="day.workouts > 0">
                 </div>
               </div>
-              <div class="goal-progress-bar">
-                <div class="goal-fill" [style.width.%]="getGoalProgress(goal)"></div>
-              </div>
-              <div class="goal-stats">
-                <span class="goal-current">{{ goal.current }} {{ goal.unit }}</span>
-                <span class="goal-target">{{ goal.target }} {{ goal.unit }}</span>
-              </div>
-              <div class="goal-deadline">Deadline: {{ goal.deadline }}</div>
+              <div class="bar-label">{{ day.date }}</div>
+              <div class="bar-value">{{ day.weight }}lb</div>
             </div>
           }
         </div>
       </section>
 
       <!-- ============================================
-           WORKOUT HISTORY CARD
+           ROW 3: WORKOUT HISTORY (3 cols - full width)
            ============================================ -->
-      <section class="dashboard-card history-card">
+      
+      <!-- WORKOUT HISTORY -->
+      <section class="dashboard-card card-large">
         <div class="card-header">
           <h2 class="card-title">WORKOUT HISTORY</h2>
           <span class="card-badge">LAST 7 DAYS</span>
         </div>
-        
-        <!-- Summary Stats -->
-        <div class="history-summary">
-          <div class="summary-stat-small">
-            <div class="summary-value-small">{{ historySummary().totalSessions }}</div>
-            <div class="summary-label-small">Sessions</div>
-          </div>
-          <div class="summary-stat-small">
-            <div class="summary-value-small">{{ historySummary().totalExercises }}</div>
-            <div class="summary-label-small">Exercises</div>
-          </div>
-          <div class="summary-stat-small">
-            <div class="summary-value-small">{{ historySummary().totalVolume }}</div>
-            <div class="summary-label-small">Total Volume (kg)</div>
-          </div>
-        </div>
 
         <!-- Exercise Filter -->
         <div class="history-filter">
-          <label class="filter-label">FILTER BY EXERCISE:</label>
+          <label class="filter-label">FILTER:</label>
           <select 
             class="filter-select" 
             [value]="selectedExerciseForHistory() || ''"
@@ -265,10 +306,7 @@
                   <span class="stat-label-tiny">MAX WEIGHT</span>
                   <span class="stat-value-tiny">{{ entry.maxWeight }} {{ entry.unit }}</span>
                 </div>
-                <div class="history-stat">
-                  <span class="stat-label-tiny">VOLUME</span>
-                  <span class="stat-value-tiny">{{ entry.totalVolume }} {{ entry.unit }}</span>
-                </div>
+                
               </div>
               <div class="history-sets">
                 @for (set of entry.sets; track $index) {
@@ -277,65 +315,9 @@
               </div>
             </div>
           } @empty {
-            <div class="empty-state-small">
-              <div class="empty-icon-small">📊</div>
-              <div class="empty-text-small">No workout history yet</div>
-              <div class="empty-subtext">Complete exercises and log them to track progress</div>
-            </div>
-          }
-        </div>
-      </section>
-
-      <!-- ============================================
-           WEEKLY PROGRESS CARD
-           ============================================ -->
-      <section class="dashboard-card progress-card">
-        <div class="card-header">
-          <h2 class="card-title">WEEKLY PROGRESS</h2>
-          <span class="card-badge">WEIGHT TRACKING</span>
-        </div>
-        <div class="progress-chart">
-          @for (day of progressData(); track day.date) {
-            <div class="chart-bar">
-              <div class="bar-container">
-                <div 
-                  class="bar-fill" 
-                  [style.height.%]="(day.workouts / 2) * 100"
-                  [class.active]="day.workouts > 0">
-                </div>
-              </div>
-              <div class="bar-label">{{ day.date }}</div>
-              <div class="bar-value">{{ day.weight }}lb</div>
-            </div>
-          }
-        </div>
-      </section>
-
-      <!-- ============================================
-           TODAY'S MEALS CARD
-           ============================================ -->
-      <section class="dashboard-card diet-card">
-        <div class="card-header">
-          <h2 class="card-title">TODAY'S MEALS</h2>
-          <button class="card-action" (click)="openAddMealModal()">+ ADD</button>
-        </div>
-        <div class="meals-list">
-          @for (meal of mealPlan(); track $index) {
-            <div class="meal-item">
-              <div class="meal-time">{{ meal.time }}</div>
-              <div class="meal-info">
-                <div class="meal-name">{{ meal.name }}</div>
-                <div class="meal-macros">
-                  <span class="macro">{{ meal.calories }} cal</span>
-                  <span class="macro">P: {{ meal.protein }}g</span>
-                  <span class="macro">C: {{ meal.carbs }}g</span>
-                  <span class="macro">F: {{ meal.fats }}g</span>
-                </div>
-              </div>
-              <div class="meal-actions">
-                <button class="action-btn-small edit" (click)="openEditMealModal(meal, $index)">✏️</button>
-                <button class="action-btn-small delete" (click)="deleteMeal($index)">🗑️</button>
-              </div>
+            <div class="empty-state">
+              <div class="empty-icon">📊</div>
+              <div class="empty-text">No workout history yet</div>
             </div>
           }
         </div>
@@ -346,7 +328,7 @@
 </div>
 
 <!-- ============================================
-     MODALS
+     MODALS (same as before)
      ============================================ -->
 
 <!-- Goal Modal -->
