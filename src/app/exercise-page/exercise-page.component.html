@@ -1,5 +1,6 @@
 <div class="dashboard">
   
+  <!-- Navigation -->
   <nav class="dashboard-nav">
     <div class="nav-content">
       <div class="logo">
@@ -9,6 +10,7 @@
       <div class="nav-right">
         <div class="user-info">
           <span class="user-name">{{ userName() }}</span>
+          <span class="user-streak">🔥 7 day streak</span>
         </div>
         <button class="logout-button" (click)="logout()">
           LOGOUT
@@ -17,23 +19,70 @@
     </div>
   </nav>
 
-  
+  <!-- Hero Section with Stats -->
+  <section class="hero-section">
+    <div class="hero-content">
+      <div class="hero-text">
+        <h1 class="hero-title">CRUSH YOUR GOALS</h1>
+        <p class="hero-subtitle">Track. Train. Transform.</p>
+      </div>
+
+      <!-- Quick Stats Cards -->
+      <div class="quick-stats">
+        <div class="quick-stat-card primary">
+          <span class="stat-icon">💪</span>
+          <div class="stat-info">
+            <div class="stat-value">48</div>
+            <div class="stat-label">Total Workouts</div>
+          </div>
+        </div>
+
+        <div class="quick-stat-card">
+          <span class="stat-icon">🏋️</span>
+          <div class="stat-info">
+            <div class="stat-value">156</div>
+            <div class="stat-label">Exercises</div>
+          </div>
+        </div>
+
+        <div class="quick-stat-card">
+          <span class="stat-icon">🔥</span>
+          <div class="stat-info">
+            <div class="stat-value">7</div>
+            <div class="stat-label">Day Streak</div>
+          </div>
+        </div>
+
+        <div class="quick-stat-card">
+          <span class="stat-icon">⚡</span>
+          <div class="stat-info">
+            <div class="stat-value">12.5K</div>
+            <div class="stat-label">Total Volume</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Main Content -->
   <div class="dashboard-content">
 
+    <!-- Workout Actions Header -->
     <div class="workout-actions-header">
-    <button 
-      class="log-workout-btn" 
-      (click)="logCurrentWorkout()"
-      [disabled]="activeWorkout().exercises.length === 0">
-      <span class="btn-icon">📝</span>
-      LOG THIS WORKOUT
-    </button>
+      <button 
+        class="log-workout-btn" 
+        (click)="logCurrentWorkout()"
+        [disabled]="activeWorkout().exercises.length === 0">
+        <span class="btn-icon">📝</span>
+        LOG THIS WORKOUT
+      </button>
+      
+      @if (logSuccessMessage()) {
+        <div class="success-message">{{ logSuccessMessage() }}</div>
+      }
+    </div>
     
-    @if (logSuccessMessage()) {
-      <div class="success-message">{{ logSuccessMessage() }}</div>
-    }
-  </div>
-    
+    <!-- Workout Tabs -->
     <div class="workout-tabs">
       @for (workout of workouts(); track workout.id) {
         <button 
@@ -46,7 +95,7 @@
       }
     </div>
 
-    
+    <!-- Workout Container -->
     <div class="workout-container">
       <div class="workout-header">
         <h1 class="workout-title">{{ activeWorkout().name }}</h1>
@@ -56,7 +105,7 @@
         </div>
       </div>
 
-     
+      <!-- Exercises List -->
       <div class="exercises-list">
         @for (exercise of activeWorkout().exercises; track exercise.id) {
           <div class="exercise-card">
@@ -76,13 +125,13 @@
               <div class="exercise-notes">{{ exercise.notes }}</div>
             }
 
-            
+            <!-- Sets List -->
             <div class="sets-list">
               @for (set of exercise.sets; track $index) {
                 <div class="set-row">
                   <div class="set-number">SET {{ $index + 1 }}</div>
                   
-                 
+                  <!-- Reps Control -->
                   <div class="set-control">
                     <button class="control-btn minus" (click)="adjustReps(exercise.id, $index, -1)">
                       −
@@ -102,7 +151,7 @@
                     </button>
                   </div>
 
-                 
+                  <!-- Weight Control -->
                   <div class="set-control">
                     <button class="control-btn minus" (click)="adjustWeight(exercise.id, $index, -2.5)">
                       −
@@ -123,7 +172,7 @@
                     </button>
                   </div>
 
-                  
+                  <!-- Delete Set Button -->
                   @if (exercise.sets.length > 1) {
                     <button class="delete-set-btn" (click)="removeSet(exercise.id, $index)">
                       ✕
@@ -133,7 +182,7 @@
               }
             </div>
 
-           
+            <!-- Set Summary -->
             <div class="set-summary">
               {{ exercise.sets.length }} sets total
             </div>
@@ -141,7 +190,7 @@
         }
       </div>
 
-      
+      <!-- Add Exercise Card -->
       <div class="add-exercise-card">
         <input 
           type="text" 
@@ -154,7 +203,6 @@
         <button class="add-exercise-btn" (click)="addExercise()">
           + ADD EXERCISE
         </button>
-        
       </div>
     </div>
   </div>
