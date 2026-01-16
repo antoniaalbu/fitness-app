@@ -16,16 +16,16 @@
     <div class="auth-form-container">
       <div class="auth-header">
         <h1 class="auth-title">
-          {{ isLogin() ? 'WELCOME BACK' : 'JOIN FITTRACK' }}
+          {{ store.titleText() }}
         </h1>
         <p class="auth-subtitle">
-          {{ isLogin() ? 'Login to continue your fitness journey' : 'Start your fitness transformation today' }}
+          {{ store.subtitleText() }}
         </p>
       </div>
 
-      @if (errorMessage()) {
+      @if (store.errorMessage()) {
         <div class="error-message">
-          {{ errorMessage() }}
+          {{ store.errorMessage() }}
         </div>
       }
 
@@ -34,16 +34,16 @@
         <button 
           type="button" 
           class="social-button google"
-          (click)="handleGoogleAuth()"
-          [disabled]="loading()">
+          (click)="store.handleGoogleAuth()"
+          [disabled]="store.loading()">
           <span class="social-icon">G</span>
           Continue with Google
         </button>
         <button 
           type="button" 
           class="social-button facebook"
-          (click)="handleFacebookAuth()"
-          [disabled]="loading()">
+          (click)="store.handleFacebookAuth()"
+          [disabled]="store.loading()">
           <span class="social-icon">f</span>
           Continue with Facebook
         </button>
@@ -54,16 +54,16 @@
       </div>
 
      
-      <form (ngSubmit)="handleSubmit($event)" class="auth-form">
-        @if (!isLogin()) {
+      <form (ngSubmit)="store.handleSubmit($event)" class="auth-form">
+        @if (!store.isLogin()) {
           <div class="form-group">
             <label for="name" class="form-label">FULL NAME</label>
             <input
               type="text"
               id="name"
               class="form-input"
-              [value]="name()"
-              (input)="name.set($any($event.target).value)"
+              [value]="store.name()"
+              (input)="store.setName($any($event.target).value)"
               placeholder="Enter your name"
               required
             />
@@ -76,8 +76,8 @@
             type="email"
             id="email"
             class="form-input"
-            [value]="email()"
-            (input)="email.set($any($event.target).value)"
+            [value]="store.email()"
+            (input)="store.setEmail($any($event.target).value)"
             placeholder="your@email.com"
             required
           />
@@ -89,29 +89,29 @@
             type="password"
             id="password"
             class="form-input"
-            [value]="password()"
-            (input)="password.set($any($event.target).value)"
+            [value]="store.password()"
+            (input)="store.setPassword($any($event.target).value)"
             placeholder="••••••••"
             required
           />
         </div>
 
-        @if (!isLogin()) {
+        @if (!store.isLogin()) {
           <div class="form-group">
             <label for="confirmPassword" class="form-label">CONFIRM PASSWORD</label>
             <input
               type="password"
               id="confirmPassword"
               class="form-input"
-              [value]="confirmPassword()"
-              (input)="confirmPassword.set($any($event.target).value)"
+              [value]="store.confirmPassword()"
+              (input)="store.setConfirmPassword($any($event.target).value)"
               placeholder="••••••••"
               required
             />
           </div>
         }
 
-        @if (isLogin()) {
+        @if (store.isLogin()) {
           <div class="form-footer">
             <a href="#" class="forgot-link">Forgot password?</a>
           </div>
@@ -120,20 +120,20 @@
         <button 
           type="submit" 
           class="submit-button"
-          [disabled]="loading()">
-          {{ loading() ? 'LOADING...' : (isLogin() ? 'LOGIN' : 'CREATE ACCOUNT') }}
+          [disabled]="store.loading() || !store.isFormValid()">
+          {{ store.buttonText() }}
         </button>
       </form>
 
       <div class="toggle-mode">
         <span class="toggle-text">
-          {{ isLogin() ? "Don't have an account?" : 'Already have an account?' }}
+          {{ store.toggleQuestion() }}
         </span>
         <button 
           type="button" 
           class="toggle-button" 
-          (click)="toggleMode()">
-          {{ isLogin() ? 'Sign up' : 'Login' }}
+          (click)="store.toggleMode()">
+          {{ store.toggleText() }}
         </button>
       </div>
     </div>
