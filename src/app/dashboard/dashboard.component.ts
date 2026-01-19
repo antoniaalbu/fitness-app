@@ -19,7 +19,7 @@ export class DashboardComponent implements OnInit {
   private auth = inject(Auth);
   private workoutService = inject(WorkoutService);
   
-  // Inject the store (provided at root level)
+ 
   readonly store = inject(DashboardStore);
 
   async ngOnInit() {
@@ -33,7 +33,7 @@ export class DashboardComponent implements OnInit {
     });
   }
 
-  // Utility methods
+  
   getGoalProgress(goal: any): number {
     return Math.round((goal.current / goal.target) * 100);
   }
