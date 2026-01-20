@@ -1,0 +1,515 @@
+<div class="dashboard">
+  <!-- NAVIGATION BAR -->
+  <nav class="dashboard-nav">
+    <div class="nav-content">
+      <div class="logo">
+        <span class="logo-icon">⚡</span>
+        <span class="logo-text">FITTRACK</span>
+      </div>
+      <div class="nav-right">
+        <div class="user-info">
+          <span class="user-name">{{ store.userName() }}</span>
+          <span class="user-streak">🔥 {{ store.userStreak() }} day streak</span>
+        </div>
+        <button class="logout-button" (click)="logout()">LOGOUT</button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- HERO SECTION WITH QUICK STATS -->
+  <section class="hero-section">
+    <div class="hero-content">
+      <div class="hero-text">
+        <h1 class="hero-title">TRAIN LIKE A BEAST</h1>
+        <p class="hero-subtitle">Track your progress • Crush your goals • Become unstoppable</p>
+      </div>
+      
+      <!-- Quick Stats -->
+      <div class="quick-stats">
+        <div class="quick-stat-card primary">
+          <div class="stat-icon">💪</div>
+          <div class="stat-info">
+            <div class="stat-value">{{ store.completedSets() }}/{{ store.totalSets() }}</div>
+            <div class="stat-label">SETS TODAY</div>
+          </div>
+        </div>
+
+        <div class="quick-stat-card">
+          <div class="stat-icon">🍽️</div>
+          <div class="stat-info">
+            <div class="stat-value">{{ store.totalCalories() }}</div>
+            <div class="stat-label">CALORIES</div>
+          </div>
+        </div>
+
+        <div class="quick-stat-card">
+          <div class="stat-icon">🥩</div>
+          <div class="stat-info">
+            <div class="stat-value">{{ store.totalProtein() }}g</div>
+            <div class="stat-label">PROTEIN</div>
+          </div>
+        </div>
+
+        <div class="quick-stat-card">
+          <div class="stat-icon">🎯</div>
+          <div class="stat-info">
+            <div class="stat-value">{{ store.goals().length }}</div>
+            <div class="stat-label">GOALS</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- MAIN DASHBOARD CONTENT -->
+  <div class="dashboard-content">
+    <div class="dashboard-grid">
+      
+      <!-- TODAY'S WORKOUT -->
+      <section class="dashboard-card card-small">
+        <div class="card-header">
+          <h2 class="card-title">TODAY'S WORKOUT</h2>
+          <button class="card-action" (click)="store.openAddWorkoutModal()">+ ADD</button>
+        </div>
+        <div class="card-content">
+          <div class="workout-list">
+            @for (workout of store.todayWorkout(); track $index) {
+              <div class="workout-item" [class.completed]="workout.completed">
+                <div class="workout-checkbox" (click)="store.toggleWorkoutComplete($index)">
+                  @if (workout.completed) {
+                    <span class="check-icon">✓</span>
+                  }
+                </div>
+                <div class="workout-info">
+                  <div class="workout-name">{{ workout.exercise }}</div>
+                  <div class="workout-details">
+                    {{ workout.sets }} × {{ workout.reps }}
+                    @if (workout.weight > 0) {
+                      <span> • {{ workout.weight }}lb</span>
+                    }
+                  </div>
+                </div>
+                <div class="workout-actions">
+                  <button class="action-btn edit" (click)="store.openEditWorkoutModal(workout, $index)">✏️</button>
+                  <button class="action-btn delete" (click)="store.deleteWorkout($index)">🗑️</button>
+                </div>
+              </div>
+            }
+          </div>
+        </div>
+      </section>
+
+      <!-- YOUR GOALS -->
+      <section class="dashboard-card card-small">
+        <div class="card-header">
+          <h2 class="card-title">YOUR GOALS</h2>
+          <button class="card-action" (click)="store.openAddGoalModal()">+ ADD</button>
+        </div>
+        <div class="card-content">
+          <div class="goals-list">
+            @for (goal of store.goals(); track $index) {
+              <div class="goal-item">
+                <div class="goal-header">
+                  <span class="goal-title">{{ goal.title }}</span>
+                  <div class="goal-actions">
+                    <button class="action-btn-small edit" (click)="store.openEditGoalModal(goal, $index)">✏️</button>
+                    <button class="action-btn-small delete" (click)="store.deleteGoal($index)">🗑️</button>
+                  </div>
+                </div>
+                <div class="goal-progress-bar">
+                  <div class="goal-fill" [style.width.%]="getGoalProgress(goal)"></div>
+                </div>
+                <div class="goal-stats">
+                  <span class="goal-current">{{ goal.current }} {{ goal.unit }}</span>
+                  <span class="goal-target">{{ goal.target }} {{ goal.unit }}</span>
+                </div>
+                <div class="goal-deadline">{{ goal.deadline }}</div>
+              </div>
+            }
+          </div>
+        </div>
+      </section>
+
+      <!-- TODAY'S MEALS -->
+      <section class="dashboard-card card-small">
+        <div class="card-header">
+          <h2 class="card-title">TODAY'S MEALS</h2>
+          <button class="card-action" (click)="store.openAddMealModal()">+ ADD</button>
+        </div>
+        <div class="card-content">
+          <div class="meals-list">
+            @for (meal of store.mealPlan(); track $index) {
+              <div class="meal-item">
+                <div class="meal-time">{{ meal.time }}</div>
+                <div class="meal-info">
+                  <div class="meal-name">{{ meal.name }}</div>
+                  <div class="meal-macros">
+                    <span class="macro">{{ meal.calories }} cal</span>
+                    <span class="macro">P: {{ meal.protein }}g</span>
+                    <span class="macro">C: {{ meal.carbs }}g</span>
+                    <span class="macro">F: {{ meal.fats }}g</span>
+                  </div>
+                </div>
+                <div class="meal-actions">
+                  <button class="action-btn-small edit" (click)="store.openEditMealModal(meal, $index)">✏️</button>
+                  <button class="action-btn-small delete" (click)="store.deleteMeal($index)">🗑️</button>
+                </div>
+              </div>
+            }
+          </div>
+        </div>
+      </section>
+
+      <!-- MY WORKOUTS OVERVIEW -->
+      <section class="dashboard-card card-medium">
+        <div class="card-header">
+          <h2 class="card-title">MY WORKOUTS</h2>
+          <button class="card-action" (click)="goToExercises()">VIEW ALL →</button>
+        </div>
+        
+        <div class="workouts-summary">
+          <div class="summary-stat">
+            <div class="summary-value">{{ store.workouts().length }}</div>
+            <div class="summary-label">Workouts</div>
+          </div>
+          <div class="summary-stat">
+            <div class="summary-value">{{ store.totalExercises() }}</div>
+            <div class="summary-label">Exercises</div>
+          </div>
+          <div class="summary-stat">
+            <div class="summary-value">{{ store.totalWorkoutSets() }}</div>
+            <div class="summary-label">Total Sets</div>
+          </div>
+        </div>
+        
+        <div class="workouts-list">
+          @for (workout of store.workouts(); track workout.id) {
+            <div class="workout-preview" (click)="goToExercises()">
+              <div class="workout-preview-header">
+                <div class="workout-preview-name">{{ workout.name }}</div>
+                <div class="workout-preview-date">{{ workout.date }}</div>
+              </div>
+              <div class="workout-preview-stats">
+                <span class="preview-stat">
+                  <span class="stat-icon-small">🏋️</span>
+                  {{ getExerciseCount(workout) }} exercises
+                </span>
+                <span class="preview-stat">
+                  <span class="stat-icon-small">📊</span>
+                  {{ getTotalSets(workout) }} sets
+                </span>
+              </div>
+              <div class="workout-preview-exercises">
+                @for (exercise of workout.exercises.slice(0, 3); track exercise.id) {
+                  <span class="exercise-tag">{{ exercise.name }}</span>
+                }
+                @if (workout.exercises.length > 3) {
+                  <span class="exercise-tag more">+{{ workout.exercises.length - 3 }} more</span>
+                }
+              </div>
+            </div>
+          } @empty {
+            <div class="empty-state">
+              <div class="empty-icon">🏋️‍♂️</div>
+              <div class="empty-text">No workouts yet</div>
+              <button class="empty-action" (click)="goToExercises()">
+                Create Your First Workout
+              </button>
+            </div>
+          }
+        </div>
+      </section>
+
+      <!-- WEEKLY PROGRESS -->
+      <section class="dashboard-card card-small">
+        <div class="card-header">
+          <h2 class="card-title">WEEKLY PROGRESS</h2>
+          <span class="card-badge">WEIGHT</span>
+        </div>
+        <div class="progress-chart">
+          @for (day of store.progressData(); track day.date) {
+            <div class="chart-bar">
+              <div class="bar-container">
+                <div 
+                  class="bar-fill" 
+                  [style.height.%]="(day.workouts / 2) * 100"
+                  [class.active]="day.workouts > 0">
+                </div>
+              </div>
+              <div class="bar-label">{{ day.date }}</div>
+              <div class="bar-value">{{ day.weight }}lb</div>
+            </div>
+          }
+        </div>
+      </section>
+
+      <!-- WORKOUT HISTORY -->
+      <section class="dashboard-card card-large">
+        <div class="card-header">
+          <h2 class="card-title">WORKOUT HISTORY</h2>
+          <span class="card-badge">LAST 7 DAYS</span>
+        </div>
+
+        <!-- Exercise Filter -->
+        <div class="history-filter">
+          <label class="filter-label">FILTER:</label>
+          <select 
+            class="filter-select" 
+            [value]="store.selectedExerciseForHistory() || ''"
+            (change)="store.selectExercise($any($event.target).value || null)">
+            <option value="">All Exercises</option>
+            @for (exercise of store.uniqueExercises(); track exercise) {
+              <option [value]="exercise">{{ exercise }}</option>
+            }
+          </select>
+        </div>
+
+        <!-- History List -->
+        <div class="history-list">
+          @for (entry of store.filteredHistory(); track entry.id) {
+            <div class="history-item">
+              <div class="history-header">
+                <div class="history-info">
+                  <div class="history-exercise">{{ entry.exerciseName }}</div>
+                  <div class="history-workout">{{ entry.workoutName }}</div>
+                </div>
+                <div class="history-date">{{ formatTimestamp(entry.timestamp) }}</div>
+              </div>
+              <div class="history-stats">
+                <div class="history-stat">
+                  <span class="stat-label-tiny">SETS</span>
+                  <span class="stat-value-tiny">{{ entry.sets.length }}</span>
+                </div>
+                <div class="history-stat">
+                  <span class="stat-label-tiny">REPS</span>
+                  <span class="stat-value-tiny">{{ entry.totalReps }}</span>
+                </div>
+                <div class="history-stat">
+                  <span class="stat-label-tiny">MAX WEIGHT</span>
+                  <span class="stat-value-tiny">{{ entry.maxWeight }} {{ entry.unit }}</span>
+                </div>
+              </div>
+              <div class="history-sets">
+                @for (set of entry.sets; track $index) {
+                  <span class="set-badge">{{ set.reps }} × {{ set.weight }}{{ entry.unit }}</span>
+                }
+              </div>
+            </div>
+          } @empty {
+            <div class="empty-state">
+              <div class="empty-icon">📊</div>
+              <div class="empty-text">No workout history yet</div>
+            </div>
+          }
+        </div>
+      </section>
+
+    </div>
+  </div>
+</div>
+
+<!-- MODALS -->
+
+<!-- Goal Modal -->
+<app-modal 
+  [isOpen]="store.showGoalModal()" 
+  [title]="store.editingGoalIndex() !== null ? 'Edit Goal' : 'Add Goal'"
+  (closeModal)="store.closeGoalModal()">
+  <form class="modal-form" (submit)="store.saveGoal(); $event.preventDefault()">
+    <div class="form-group">
+      <label>Goal Title</label>
+      <input 
+        type="text" 
+        [ngModel]="store.goalForm().title"
+        (ngModelChange)="store.updateGoalForm({ title: $event })"
+        name="title"
+        placeholder="e.g., Bench Press Max"
+        required>
+    </div>
+    
+    <div class="form-row">
+      <div class="form-group">
+        <label>Current</label>
+        <input 
+          type="number" 
+          [ngModel]="store.goalForm().current"
+          (ngModelChange)="store.updateGoalForm({ current: $event })"
+          name="current"
+          required>
+      </div>
+      
+      <div class="form-group">
+        <label>Target</label>
+        <input 
+          type="number" 
+          [ngModel]="store.goalForm().target"
+          (ngModelChange)="store.updateGoalForm({ target: $event })"
+          name="target"
+          required>
+      </div>
+      
+      <div class="form-group">
+        <label>Unit</label>
+        <select 
+          [ngModel]="store.goalForm().unit"
+          (ngModelChange)="store.updateGoalForm({ unit: $event })"
+          name="unit">
+          <option value="lbs">lbs</option>
+          <option value="kg">kg</option>
+          <option value="reps">reps</option>
+        </select>
+      </div>
+    </div>
+    
+    <div class="form-group">
+      <label>Deadline</label>
+      <input 
+        type="date" 
+        [ngModel]="store.goalForm().deadline"
+        (ngModelChange)="store.updateGoalForm({ deadline: $event })"
+        name="deadline"
+        required>
+    </div>
+    
+    <div class="form-actions">
+      <button type="button" class="btn-cancel" (click)="store.closeGoalModal()">Cancel</button>
+      <button type="submit" class="btn-save">Save Goal</button>
+    </div>
+  </form>
+</app-modal>
+
+<!-- Meal Modal -->
+<app-modal 
+  [isOpen]="store.showMealModal()" 
+  [title]="store.editingMealIndex() !== null ? 'Edit Meal' : 'Add Meal'"
+  (closeModal)="store.closeMealModal()">
+  <form class="modal-form" (submit)="store.saveMeal(); $event.preventDefault()">
+    <div class="form-group">
+      <label>Meal Name</label>
+      <input 
+        type="text" 
+        [ngModel]="store.mealForm().name"
+        (ngModelChange)="store.updateMealForm({ name: $event })"
+        name="name"
+        placeholder="e.g., Chicken & Rice"
+        required>
+    </div>
+    
+    <div class="form-group">
+      <label>Time</label>
+      <input 
+        type="time" 
+        [ngModel]="store.mealForm().time"
+        (ngModelChange)="store.updateMealForm({ time: $event })"
+        name="time"
+        required>
+    </div>
+    
+    <div class="form-row">
+      <div class="form-group">
+        <label>Calories</label>
+        <input 
+          type="number" 
+          [ngModel]="store.mealForm().calories"
+          (ngModelChange)="store.updateMealForm({ calories: $event })"
+          name="calories"
+          required>
+      </div>
+      
+      <div class="form-group">
+        <label>Protein (g)</label>
+        <input 
+          type="number" 
+          [ngModel]="store.mealForm().protein"
+          (ngModelChange)="store.updateMealForm({ protein: $event })"
+          name="protein"
+          required>
+      </div>
+    </div>
+    
+    <div class="form-row">
+      <div class="form-group">
+        <label>Carbs (g)</label>
+        <input 
+          type="number" 
+          [ngModel]="store.mealForm().carbs"
+          (ngModelChange)="store.updateMealForm({ carbs: $event })"
+          name="carbs"
+          required>
+      </div>
+      
+      <div class="form-group">
+        <label>Fats (g)</label>
+        <input 
+          type="number" 
+          [ngModel]="store.mealForm().fats"
+          (ngModelChange)="store.updateMealForm({ fats: $event })"
+          name="fats"
+          required>
+      </div>
+    </div>
+    
+    <div class="form-actions">
+      <button type="button" class="btn-cancel" (click)="store.closeMealModal()">Cancel</button>
+      <button type="submit" class="btn-save">Save Meal</button>
+    </div>
+  </form>
+</app-modal>
+
+<!-- Workout Modal -->
+<app-modal 
+  [isOpen]="store.showWorkoutModal()" 
+  [title]="store.editingWorkoutIndex() !== null ? 'Edit Exercise' : 'Add Exercise'"
+  (closeModal)="store.closeWorkoutModal()">
+  <form class="modal-form" (submit)="store.saveWorkout(); $event.preventDefault()">
+    <div class="form-group">
+      <label>Exercise Name</label>
+      <input 
+        type="text" 
+        [ngModel]="store.workoutForm().exercise"
+        (ngModelChange)="store.updateWorkoutForm({ exercise: $event })"
+        name="exercise"
+        placeholder="e.g., Bench Press"
+        required>
+    </div>
+    
+    <div class="form-row">
+      <div class="form-group">
+        <label>Sets</label>
+        <input 
+          type="number" 
+          [ngModel]="store.workoutForm().sets"
+          (ngModelChange)="store.updateWorkoutForm({ sets: $event })"
+          name="sets"
+          min="1"
+          required>
+      </div>
+      
+      <div class="form-group">
+        <label>Reps</label>
+        <input 
+          type="number" 
+          [ngModel]="store.workoutForm().reps"
+          (ngModelChange)="store.updateWorkoutForm({ reps: $event })"
+          name="reps"
+          min="1"
+          required>
+      </div>
+      
+      <div class="form-group">
+        <label>Weight (lbs)</label>
+        <input 
+          type="number" 
+          [ngModel]="store.workoutForm().weight"
+          (ngModelChange)="store.updateWorkoutForm({ weight: $event })"
+          name="weight"
+          min="0">
+      </div>
+    </div>
+    
+    <div class="form-actions">
+      <button type="button" class="btn-cancel" (click)="store.closeWorkoutModal()">Cancel</button>
+      <button type="submit" class="btn-save">Save Exercise</button>
+    </div>
+  </form>
+</app-modal>

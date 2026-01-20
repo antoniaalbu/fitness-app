@@ -1,0 +1,141 @@
+<div class="auth-page">
+  <div class="auth-container">
+   
+    <div class="auth-branding">
+      <div class="brand-logo">x-FIT</div>
+      <p class="brand-tagline">
+        Track every rep, crush your goals, and connect with friends.
+      </p>
+      <div class="stat-badge">
+        <div class="stat-number">Change</div>
+        <div class="stat-label">COMES WITH YOU</div>
+      </div>
+    </div>
+
+   
+    <div class="auth-form-container">
+      <div class="auth-header">
+        <h1 class="auth-title">
+          {{ store.titleText() }}
+        </h1>
+        <p class="auth-subtitle">
+          {{ store.subtitleText() }}
+        </p>
+      </div>
+
+      @if (store.errorMessage()) {
+        <div class="error-message">
+          {{ store.errorMessage() }}
+        </div>
+      }
+
+      
+      <div class="social-buttons">
+        <button 
+          type="button" 
+          class="social-button google"
+          (click)="store.handleGoogleAuth()"
+          [disabled]="store.loading()">
+          <span class="social-icon">G</span>
+          Continue with Google
+        </button>
+        <button 
+          type="button" 
+          class="social-button facebook"
+          (click)="store.handleFacebookAuth()"
+          [disabled]="store.loading()">
+          <span class="social-icon">f</span>
+          Continue with Facebook
+        </button>
+      </div>
+
+      <div class="divider">
+        <span class="divider-text">OR</span>
+      </div>
+
+     
+      <form (ngSubmit)="store.handleSubmit($event)" class="auth-form">
+        @if (!store.isLogin()) {
+          <div class="form-group">
+            <label for="name" class="form-label">FULL NAME</label>
+            <input
+              type="text"
+              id="name"
+              class="form-input"
+              [value]="store.name()"
+              (input)="store.setName($any($event.target).value)"
+              placeholder="Enter your name"
+              required
+            />
+          </div>
+        }
+
+        <div class="form-group">
+          <label for="email" class="form-label">EMAIL</label>
+          <input
+            type="email"
+            id="email"
+            class="form-input"
+            [value]="store.email()"
+            (input)="store.setEmail($any($event.target).value)"
+            placeholder="your@email.com"
+            required
+          />
+        </div>
+
+        <div class="form-group">
+          <label for="password" class="form-label">PASSWORD</label>
+          <input
+            type="password"
+            id="password"
+            class="form-input"
+            [value]="store.password()"
+            (input)="store.setPassword($any($event.target).value)"
+            placeholder="••••••••"
+            required
+          />
+        </div>
+
+        @if (!store.isLogin()) {
+          <div class="form-group">
+            <label for="confirmPassword" class="form-label">CONFIRM PASSWORD</label>
+            <input
+              type="password"
+              id="confirmPassword"
+              class="form-input"
+              [value]="store.confirmPassword()"
+              (input)="store.setConfirmPassword($any($event.target).value)"
+              placeholder="••••••••"
+              required
+            />
+          </div>
+        }
+
+        @if (store.isLogin()) {
+          <div class="form-footer">
+            <a href="#" class="forgot-link">Forgot password?</a>
+          </div>
+        }
+
+        <button 
+          type="submit" 
+          class="submit-button"
+          [disabled]="store.loading() || !store.isFormValid()">
+          {{ store.buttonText() }}
+        </button>
+      </form>
+
+      <div class="toggle-mode">
+        <span class="toggle-text">
+          {{ store.toggleQuestion() }}
+        </span>
+        <button 
+          type="button" 
+          class="toggle-button" 
+          (click)="store.toggleMode()">
+          {{ store.toggleText() }}
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
